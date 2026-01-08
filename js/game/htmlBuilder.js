@@ -52,6 +52,45 @@ define(function() {
 	};
 
 	/**
+	 * Builds HTML table for leaderboard (top 3 players).
+	 * @param leaderboard array with top User objects to display
+	 * @returns {jQuery|HTMLElement}
+	 */
+	HTMLBuilder.prototype.buildLeaderboardTable = function(leaderboard) {
+		if (!leaderboard || leaderboard.length < 1) {
+			var empty = this.new('div');
+			empty.addClass('table-empty');
+			empty.append('<span>No scores yet. Be the first!</span>');
+			return empty;
+		}
+
+		var table = this.new('table');
+		table.addClass(this.tableClass);
+
+		// make table-head
+		var thead = this.new('thead');
+		thead.append('<tr><th>Rank</th><th>Name</th><th class="text-right">Time [s]</th><th class="text-right">Kills</th></tr>');
+
+		// make table-body
+		var tbody = this.new('tbody');
+		for (var i = 0; i < leaderboard.length; i++) {
+			var row = this.new('tr');
+			var rank = i + 1;
+			var rankDisplay = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+			row.append('<td><strong>' + rankDisplay + '</strong></td>');
+			row.append('<td>' + leaderboard[i].name + '</td>');
+			var score = leaderboard[i].highScore;
+			row.append('<td class="text-right">' + (score ? score.time.toFixed(1) : '-') + '</td>');
+			row.append('<td class="text-right">' + (score ? score.kills : '-') + '</td>');
+			tbody.append(row);
+		}
+
+		table.append(thead);
+		table.append(tbody);
+		return table;
+	};
+
+	/**
 	 * Creates new HTML element wrapped by jQuery.
 	 * @param element String tag
 	 * @returns {jQuery|HTMLElement} new HTML element

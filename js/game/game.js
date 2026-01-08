@@ -237,13 +237,12 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 	};
 
 	/**
-	 * Renders up-to-date text with username and HP.
+	 * Renders up-to-date text with HP.
 	 */
 	Game.prototype.refreshText = function() {
-		var username = (this.user) ? this.user.name : 'Player';
 		// Ensure HP is never displayed as negative
 		var displayHP = Math.max(0, this.playerHP);
-		this.text.setText(username + ' HP: ' + displayHP);
+		this.text.setText('Player HP: ' + displayHP);
 		this.mainLayer.draw();
 	};
 

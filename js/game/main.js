@@ -51,14 +51,29 @@ require(["game","users","htmlBuilder"], function(Game, Users, HTMLBuilder) {
 	
 	var game = new Game();
 	var running = false;
+	var pendingGameResult = null; // Store game result until user enters name
 	game.init();
 	game.setUser(users.loggedUser());
 	game.gameOverCallback = function(result) {
 		var time =  Math.round(result.time / 100) / 10;
-		users.updateScore(time, result.kills);
+		// Store the result temporarily - don't save yet
+		pendingGameResult = {
+			time: time,
+			kills: result.kills
+		};
 		running = false;
+		// Clear current user so score doesn't get saved to wrong user
+		users.currentUser = null;
 		$('#message-score').text("GAME OVER: You've killed " + result.kills + " enemies, in " + time + "s.");
-		$('#game-menu').modal('show');
+		// Show system-compromised modal
+		$('#system-compromised').modal('show');
+		// Reset modal to name input state
+		$('#name-input-section').show();
+		$('#leaderboard-section').hide();
+		$('#submit-name').show();
+		$('#play-again-btn').hide();
+		$('#quit-btn').hide();
+		$('#player-name-input').val('');
 	};
 
 	game.playground.on('keypress', function(event) {
@@ -79,8 +94,10 @@ require(["game","users","htmlBuilder"], function(Game, Users, HTMLBuilder) {
 	W.resize(function() {
 		game.resizePlayground(getWidth(), getHeight());
 	});
-	$('#game-menu, #settings, #users, #about').on('hidden', function() {
-		game.playground.focus();
+	$('#game-menu, #settings, #users, #about, #system-compromised').on('hidden', function() {
+		if ($('#playground').is(':visible')) {
+			game.playground.focus();
+		}
 	});
 
 	$('#game-begin').on('click', function() {
@@ -118,5 +135,80 @@ require(["game","users","htmlBuilder"], function(Game, Users, HTMLBuilder) {
 		game.playground.focus();
 		game.beginNewGame();
 		running = true;
+	});
+
+	// Handle submit name button - show leaderboard and action buttons
+	$('#submit-name').on('click', function() {
+		var playerName = $('#player-name-input').val().trim();
+		if (playerName) {
+			// Find existing user or create new one
+			var existingUser = null;
+			var allUsers = users.getAllUsers();
+			for (var i = 0; i < allUsers.length; i++) {
+				if (allUsers[i].name === playerName) {
+					existingUser = allUsers[i];
+					break;
+				}
+			}
+			var userToLogin = existingUser;
+			if (!existingUser) {
+				userToLogin = users.newUser(playerName);
+			}
+			users.login(userToLogin.id);
+			game.setUser(users.loggedUser());
+			
+			// NOW save the score to the correct user
+			if (pendingGameResult) {
+				users.updateScore(pendingGameResult.time, pendingGameResult.kills);
+				pendingGameResult = null; // Clear it after saving
+			}
+			
+			// Show leaderboard
+			var leaderboard = builder.buildLeaderboardTable(users.getTop5Leaderboard());
+			$('#leaderboard-content').empty().append(leaderboard);
+			$('#name-input-section').hide();
+			$('#leaderboard-section').show();
+			$('#submit-name').hide();
+			$('#play-again-btn').show();
+			$('#quit-btn').show();
+		}
+	});
+
+	// Play Again button handler - restart the game
+	$('#play-again-btn').on('click', function() {
+		$('#system-compromised').modal('hide');
+		// Reset modal state for next time
+		$('#name-input-section').show();
+		$('#leaderboard-section').hide();
+		$('#submit-name').show();
+		$('#play-again-btn').hide();
+		$('#quit-btn').hide();
+		$('#player-name-input').val('');
+		// Clear any pending game result
+		pendingGameResult = null;
+		// Restart the game
+		game.beginNewGame();
+		running = true;
+		game.playground.focus();
+	});
+
+	// Quit button handler - go back to start screen
+	$('#quit-btn').on('click', function() {
+		$('#system-compromised').modal('hide');
+		// Reset modal state for next time
+		$('#name-input-section').show();
+		$('#leaderboard-section').hide();
+		$('#submit-name').show();
+		$('#play-again-btn').hide();
+		$('#quit-btn').hide();
+		$('#player-name-input').val('');
+		// Clear any pending game result
+		pendingGameResult = null;
+		// Clear current user
+		users.currentUser = null;
+		// Hide playground and show start screen
+		$('#playground').hide();
+		$('#start-screen').removeClass('hidden');
+		running = false;
 	});
 });

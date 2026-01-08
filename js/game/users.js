@@ -16,6 +16,7 @@ define(function() {
 
 	/**
 	 * The Users initialization.
+	 * Loads leaderboard data from localStorage, ensuring permanent persistence.
 	 */
 	Users.prototype.init = function() {
 		if (!localStorage) {
@@ -23,7 +24,12 @@ define(function() {
 			return;
 		}
 
+		// Try to load from main storage first
 		var users = localStorage.getItem('users');
+		if (!users) {
+			// If main storage is empty, try backup
+			users = localStorage.getItem('leaderboard_backup');
+		}
 		if (users) {
 			users = JSON.parse(users);
 			for (var i = 0; i < users.length; i++) {
@@ -42,6 +48,7 @@ define(function() {
 
 	/**
 	 * Persists the Users object into LocalStorage.
+	 * Leaderboard data is stored permanently and never erased.
 	 */
 	Users.prototype.persist = function() {
 		if (!localStorage) {
@@ -55,9 +62,12 @@ define(function() {
 				users.push(this.allUsers[key]);
 			}
 		}
+		// Store permanently - never clear this data
 		localStorage.setItem('users', JSON.stringify(users));
 		localStorage.setItem('idCount', this.idCount);
 		localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
+		// Also store a backup copy to ensure data persistence
+		localStorage.setItem('leaderboard_backup', JSON.stringify(users));
 	};
 
 	/**
@@ -122,10 +132,62 @@ define(function() {
 	 */
 	Users.prototype.updateScore = function(time, kills) {
 		var score = new Score(time, kills);
-		if (this.currentUser && scoreComparator(score, this.currentUser.highScore) < 0) {
+		if (this.currentUser) {
+			// Always update score (don't check if better)
 			this.currentUser.highScore = score;
 			this.persist();
+			// Maintain leaderboard
+			this.maintainTop5();
 		}
+	};
+
+	/**
+	 * Gets top 3 players for leaderboard (sorted by kills, descending).
+	 * @returns {Array} top 3 User objects with scores
+	 */
+	Users.prototype.getTop5Leaderboard = function() {
+		var all = [];
+		for (var key in this.allUsers) {
+			if (this.allUsers.hasOwnProperty(key)) {
+				var user = this.allUsers[key];
+				// Only include users with scores
+				if (user.highScore) {
+					all.push(user);
+				}
+			}
+		}
+		// Sort by kills (more kills = better, so descending order)
+		all.sort(function(one, two) {
+			if (!one.highScore && !two.highScore) return 0;
+			if (!one.highScore) return +1;
+			if (!two.highScore) return -1;
+			// Sort by kills descending (higher kills first)
+			if (two.highScore.kills > one.highScore.kills) return +1;
+			if (two.highScore.kills < one.highScore.kills) return -1;
+			// If kills are equal, sort by time as tiebreaker (longer time first)
+			if (two.highScore.time > one.highScore.time) return +1;
+			if (two.highScore.time < one.highScore.time) return -1;
+			return 0;
+		});
+		// Return top 3
+		return all.slice(0, 3);
+	};
+
+	/**
+	 * Maintains the leaderboard.
+	 * Keeps all users, but we'll only display top 3.
+	 * This ensures data is never lost.
+	 */
+	Users.prototype.maintainTop5 = function() {
+		var top5 = this.getTop5Leaderboard();
+		var top5Ids = {};
+		for (var i = 0; i < top5.length; i++) {
+			top5Ids[top5[i].id] = true;
+		}
+		
+		// Keep all users, but we'll only display top 3
+		// This ensures data is never lost
+		this.persist();
 	};
 
 	/** The User object. */

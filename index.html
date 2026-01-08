@@ -25,18 +25,34 @@
 
 <div id="playground" tabindex="0" role="main" style="display: none;"></div>
 
-<div id="game-menu" class="modal hide fade" tabindex="-1" role="dialog">
+<div id="system-compromised" class="modal hide fade" tabindex="-1" role="dialog">
 	<div class="modal-header">
-		<button class="close" data-dismiss="modal">&times;</button>
-		<h2>Game menu</h2>
+		<h2 style="color: #d9534f;">⚠ SYSTEM COMPROMISED ⚠</h2>
 	</div>
 	<div class="modal-body">
-		<p id="message-user"></p>
-		<p id="message-score"></p>
+		<div id="name-input-section">
+			<p id="compromised-message" style="font-size: 18px; font-weight: bold; color: #d9534f; margin-bottom: 20px;">
+				SYSTEM COMPROMISED
+			</p>
+			<div class="form-horizontal">
+				<div class="control-group">
+					<label class="control-label" for="player-name-input">Enter your name for the leaderboard:</label>
+					<div class="controls">
+						<input id="player-name-input" type="text" placeholder="Your name" style="width: 100%; padding: 8px; font-size: 16px;"/>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="leaderboard-section" style="display: none; margin-top: 20px;">
+			<h4 style="margin-top: 0; margin-bottom: 15px;">🏆 TOP 3 LEADERBOARD 🏆</h4>
+			<div id="leaderboard-content"></div>
+		</div>
 	</div>
 	<div class="modal-footer">
-		<button id="game-end" class="btn" data-dismiss="modal">End current game</button>
-		<button id="game-begin" class="btn btn-primary" data-dismiss="modal">Begin new game</button>
+		<button id="submit-name" type="button" class="btn btn-primary">Submit</button>
+		<button id="close-modal" type="button" class="btn" style="display: none;" data-dismiss="modal">Close</button>
+		<button id="play-again-btn" type="button" class="btn btn-success" style="display: none;">Play Again</button>
+		<button id="quit-btn" type="button" class="btn btn-danger" style="display: none;">Quit</button>
 	</div>
 </div>
 
