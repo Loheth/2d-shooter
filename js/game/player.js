@@ -6,49 +6,117 @@
  */
 
 define(function() {
-	// animation frames in the player sprite
+	// Frame dimensions - calculated from sprite sheet (557x448 pixels, 5 columns x 4 rows)
+	var FRAME_WIDTH = 111;
+	var FRAME_HEIGHT = 112;
+	
+	// animation frames in the player sprite (4 rows x 5 columns)
+	// Row 1: Up direction (y: 0)
+	// Row 2: Right direction (y: FRAME_HEIGHT)
+	// Row 3: Down direction (y: FRAME_HEIGHT * 2)
+	// Row 4: Left direction (y: FRAME_HEIGHT * 3)
 	var playerAnimation = {
+		walkUp: [
+			{ x:   0, y:   0, width: FRAME_WIDTH, height: FRAME_HEIGHT },
+			{ x: FRAME_WIDTH, y:   0, width: FRAME_WIDTH, height: FRAME_HEIGHT },
+			{ x: FRAME_WIDTH * 2, y:   0, width: FRAME_WIDTH, height: FRAME_HEIGHT },
+			{ x: FRAME_WIDTH * 3, y:   0, width: FRAME_WIDTH, height: FRAME_HEIGHT },
+			{ x: FRAME_WIDTH * 4, y:   0, width: FRAME_WIDTH, height: FRAME_HEIGHT }
+		],
+		walkRight: [
+			{ x:   0, y: FRAME_HEIGHT, width: FRAME_WIDTH, height: FRAME_HEIGHT },
+			{ x: FRAME_WIDTH, y: FRAME_HEIGHT, width: FRAME_WIDTH, height: FRAME_HEIGHT },
+			{ x: FRAME_WIDTH * 2, y: FRAME_HEIGHT, width: FRAME_WIDTH, height: FRAME_HEIGHT },
+			{ x: FRAME_WIDTH * 3, y: FRAME_HEIGHT, width: FRAME_WIDTH, height: FRAME_HEIGHT },
+			{ x: FRAME_WIDTH * 4, y: FRAME_HEIGHT, width: FRAME_WIDTH, height: FRAME_HEIGHT }
+		],
+		walkDown: [
+			{ x:   0, y: FRAME_HEIGHT * 2, width: FRAME_WIDTH, height: FRAME_HEIGHT },
+			{ x: FRAME_WIDTH, y: FRAME_HEIGHT * 2, width: FRAME_WIDTH, height: FRAME_HEIGHT },
+			{ x: FRAME_WIDTH * 2, y: FRAME_HEIGHT * 2, width: FRAME_WIDTH, height: FRAME_HEIGHT },
+			{ x: FRAME_WIDTH * 3, y: FRAME_HEIGHT * 2, width: FRAME_WIDTH, height: FRAME_HEIGHT },
+			{ x: FRAME_WIDTH * 4, y: FRAME_HEIGHT * 2, width: FRAME_WIDTH, height: FRAME_HEIGHT }
+		],
+		walkLeft: [
+			{ x:   0, y: FRAME_HEIGHT * 3, width: FRAME_WIDTH, height: FRAME_HEIGHT },
+			{ x: FRAME_WIDTH, y: FRAME_HEIGHT * 3, width: FRAME_WIDTH, height: FRAME_HEIGHT },
+			{ x: FRAME_WIDTH * 2, y: FRAME_HEIGHT * 3, width: FRAME_WIDTH, height: FRAME_HEIGHT },
+			{ x: FRAME_WIDTH * 3, y: FRAME_HEIGHT * 3, width: FRAME_WIDTH, height: FRAME_HEIGHT },
+			{ x: FRAME_WIDTH * 4, y: FRAME_HEIGHT * 3, width: FRAME_WIDTH, height: FRAME_HEIGHT }
+		],
+		// Stand animations use first frame of each direction
+		standUp: [
+			{ x:   0, y:   0, width: FRAME_WIDTH, height: FRAME_HEIGHT }
+		],
+		standRight: [
+			{ x:   0, y: FRAME_HEIGHT, width: FRAME_WIDTH, height: FRAME_HEIGHT }
+		],
+		standDown: [
+			{ x:   0, y: FRAME_HEIGHT * 2, width: FRAME_WIDTH, height: FRAME_HEIGHT }
+		],
+		standLeft: [
+			{ x:   0, y: FRAME_HEIGHT * 3, width: FRAME_WIDTH, height: FRAME_HEIGHT }
+		],
+		// Legacy support - default to down direction
 		walk: [
-			{ x:   0, y:   0, width: 120, height: 120 },
-			{ x: 120, y:   0, width: 120, height: 120 },
-			{ x: 240, y:   0, width: 120, height: 120 },
-			{ x: 360, y:   0, width: 120, height: 120 },
-			{ x: 480, y:   0, width: 120, height: 120 },
-			{ x:   0, y: 120, width: 120, height: 120 },
-			{ x: 120, y: 120, width: 120, height: 120 },
-			{ x: 240, y: 120, width: 120, height: 120 },
-			{ x: 360, y: 120, width: 120, height: 120 },
-			{ x: 480, y: 120, width: 120, height: 120 }
+			{ x:   0, y: FRAME_HEIGHT * 2, width: FRAME_WIDTH, height: FRAME_HEIGHT },
+			{ x: FRAME_WIDTH, y: FRAME_HEIGHT * 2, width: FRAME_WIDTH, height: FRAME_HEIGHT },
+			{ x: FRAME_WIDTH * 2, y: FRAME_HEIGHT * 2, width: FRAME_WIDTH, height: FRAME_HEIGHT },
+			{ x: FRAME_WIDTH * 3, y: FRAME_HEIGHT * 2, width: FRAME_WIDTH, height: FRAME_HEIGHT },
+			{ x: FRAME_WIDTH * 4, y: FRAME_HEIGHT * 2, width: FRAME_WIDTH, height: FRAME_HEIGHT }
 		],
 		stand: [
-			{ x:   0, y: 240, width: 120, height: 120 },
-			{ x: 120, y: 240, width: 120, height: 120 },
-			{ x: 240, y: 240, width: 120, height: 120 },
-			{ x: 360, y: 240, width: 120, height: 120 },
-			{ x: 480, y: 240, width: 120, height: 120 },
-			{ x:   0, y: 360, width: 120, height: 120 },
-			{ x: 120, y: 360, width: 120, height: 120 },
-			{ x: 240, y: 360, width: 120, height: 120 },
-			{ x: 360, y: 360, width: 120, height: 120 },
-			{ x: 480, y: 360, width: 120, height: 120 }
+			{ x:   0, y: FRAME_HEIGHT * 2, width: FRAME_WIDTH, height: FRAME_HEIGHT }
 		]
 	};
 
 	/** The Player object. */
 	function Player() {
 		var img = new Image();
-		img.src = 'img/game/player-sprite.png';
-
+		var self = this;
+		
+		// Track current movement direction for animation selection
+		this.currentDirection = 'down';
 		this.foreground = null;
+		
+		// Set up image loading handlers
+		img.onload = function() {
+			// Image loaded, ensure sprite is properly initialized
+			if (self.sprite) {
+				// Force sprite to refresh with loaded image
+				self.sprite.setImage(img);
+				self.sprite.setAnimation('standDown');
+				self.sprite.setIndex(0);
+				// Redraw if layer exists
+				if (self.foreground && self.foreground.getLayer()) {
+					self.foreground.getLayer().draw();
+				}
+			}
+		};
+		img.onerror = function() {
+			console.error('Failed to load player sprite: img/game/player-sprite.png');
+		};
+		
+		// Set image source (may already be cached)
+		img.src = 'img/game/player-sprite.png';
+		
+		// Check if image is already loaded (cached)
+		if (img.complete && img.naturalWidth > 0) {
+			// Image already loaded, trigger onload manually
+			setTimeout(function() {
+				img.onload();
+			}, 0);
+		}
 
 		this.sprite = new Kinetic.Sprite({
 			x: -50,
 			y: -50,
-			offset: [50,50],
+			offset: [FRAME_WIDTH/2, FRAME_HEIGHT/2],
 			image: img,
-			animation: 'stand',
+			animation: 'standDown',
 			animations: playerAnimation,
-			frameRate: 12
+			frameRate: 12,
+			index: 0
 		});
 		this.blood = new Kinetic.Circle({
 			x: -50,
@@ -122,7 +190,35 @@ define(function() {
 				var x = event.layerX || event.x || event.clientX;
 				var y = event.layerY || event.y || event.clientY;
 				if (self.shootCallback) {
-					var points = [ player.getX(), player.getY(), x, y ];
+					var playerX = player.getX();
+					var playerY = player.getY();
+					
+					// Calculate direction from player to mouse click
+					var dx = x - playerX;
+					var dy = y - playerY;
+					var distance = Math.sqrt(dx * dx + dy * dy);
+					
+					// Handle edge case where mouse is exactly on player
+					if (distance < 1) {
+						distance = 1;
+						dx = 1;
+						dy = 0;
+					}
+					
+					// Normalize direction vector (unit vector pointing toward mouse)
+					var dirX = dx / distance;
+					var dirY = dy / distance;
+					
+					// Offset forward from player center to gun tip
+					// The gun extends forward from the character center toward the mouse
+					// Adjust the multiplier to fine-tune gun tip position:
+					// - Smaller values (0.3-0.4) = closer to center
+					// - Larger values (0.5-0.7) = further out toward gun tip
+					var gunOffset = FRAME_HEIGHT * 0.55; // Start with 0.55, adjust if needed
+					var gunX = playerX + dirX * gunOffset;
+					var gunY = playerY + dirY * gunOffset;
+					
+					var points = [ gunX, gunY, x, y ];
 					self.shootCallback(points);
 				}
 			}
@@ -131,6 +227,23 @@ define(function() {
 		// bind key-press to move the player
 		var moving = [];
 		var isMoving = function() { return moving['up'] || moving['down'] || moving['left'] || moving['right']; };
+		var getCurrentDirection = function() {
+			// Priority: up > down > left > right (for diagonal movement)
+			if (moving['up']) return 'up';
+			if (moving['down']) return 'down';
+			if (moving['left']) return 'left';
+			if (moving['right']) return 'right';
+			return self.currentDirection; // Keep last direction when standing
+		};
+		var updateAnimation = function() {
+			if (isMoving()) {
+				var dir = getCurrentDirection();
+				self.currentDirection = dir;
+				player.setAnimation('walk' + dir.charAt(0).toUpperCase() + dir.slice(1));
+			} else {
+				player.setAnimation('stand' + self.currentDirection.charAt(0).toUpperCase() + self.currentDirection.slice(1));
+			}
+		};
 		playground.on('keydown', function(event) {
 			if (!self.paused && !self.disabled) {
 				// handle key-down events
@@ -150,13 +263,15 @@ define(function() {
 						break;
 				}
 				if (!wasMoving && isMoving()) {
-					player.setAnimation('walk');
+					updateAnimation();
+				} else if (isMoving()) {
+					updateAnimation();
 				}
 			}
 		});
 		playground.on('keyup', function(event) {
 			if (!self.paused && !self.disabled) {
-				// handle key-uo events
+				// handle key-up events
 				var wasMoving = isMoving();
 				switch (event.which) {
 					case 87: // W
@@ -173,7 +288,9 @@ define(function() {
 						break;
 				}
 				if (wasMoving && !isMoving()) {
-					player.setAnimation('stand');
+					updateAnimation();
+				} else if (isMoving()) {
+					updateAnimation();
 				}
 			}
 		});
@@ -212,6 +329,8 @@ define(function() {
 
 		this.paused = false;
 		this.disabled = false;
+		this.currentDirection = 'down'; // Reset direction
+		this.sprite.setAnimation('standDown');
 		this.sprite.start();
 		this.sprite.show();
 
