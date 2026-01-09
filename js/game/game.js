@@ -31,6 +31,14 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 			strokeWidth: 4,
 			fillPatternImage: bgImg
 		});
+		this.backgroundOverlay = new Kinetic.Rect({
+			x: 0,
+			y: 0,
+			width: width,
+			height: height,
+			fill: 'black',
+			opacity: 0.3
+		});
 		this.foreground = new Kinetic.Rect({
 			x: 0,
 			y: 0,
@@ -44,14 +52,92 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		this.mainLayer = new Kinetic.Layer();
 		this.lastLayer = new Kinetic.Layer();
 
-		this.text = new Kinetic.Text({
+		// Minecraft-style health bar components
+		this.maxHP = 50;
+		this.heartsPerRow = 10; // Show 10 hearts per row (like Minecraft)
+		this.heartSize = 12; // Size of each heart icon (increased from 9)
+		this.heartSpacing = 1; // Spacing between hearts
+		this.heartScale = 1.3; // Scale factor to make hearts bigger
+		
+		this.healthBarGroup = new Kinetic.Group({
 			x: 10,
-			y: 10,
-			fontSize: 30,
-			fontStyle: 'bold',
-			fill: '#357735',
-			shadowColor: 'gray'
+			y: 10
 		});
+		
+		// Create heart icons array
+		this.hearts = [];
+		var totalHearts = Math.ceil(this.maxHP / 2); // Each heart = 2 HP
+		for (var i = 0; i < totalHearts; i++) {
+			var heartGroup = new Kinetic.Group({
+				x: (i % this.heartsPerRow) * (this.heartSize + this.heartSpacing),
+				y: Math.floor(i / this.heartsPerRow) * (this.heartSize + this.heartSpacing),
+				scaleX: this.heartScale,
+				scaleY: this.heartScale
+			});
+			
+			// Heart background (empty/gray outline) - build pixel by pixel
+			var heartBgPixels = [];
+			// Top left curve
+			heartBgPixels.push(new Kinetic.Rect({x: 1, y: 2, width: 2, height: 2, fill: '#2a2a2a', stroke: '#000000', strokeWidth: 0.5}));
+			heartBgPixels.push(new Kinetic.Rect({x: 0, y: 3, width: 2, height: 2, fill: '#2a2a2a', stroke: '#000000', strokeWidth: 0.5}));
+			heartBgPixels.push(new Kinetic.Rect({x: 0, y: 4, width: 2, height: 1, fill: '#2a2a2a', stroke: '#000000', strokeWidth: 0.5}));
+			// Top right curve
+			heartBgPixels.push(new Kinetic.Rect({x: 6, y: 2, width: 2, height: 2, fill: '#2a2a2a', stroke: '#000000', strokeWidth: 0.5}));
+			heartBgPixels.push(new Kinetic.Rect({x: 7, y: 3, width: 2, height: 2, fill: '#2a2a2a', stroke: '#000000', strokeWidth: 0.5}));
+			heartBgPixels.push(new Kinetic.Rect({x: 7, y: 4, width: 2, height: 1, fill: '#2a2a2a', stroke: '#000000', strokeWidth: 0.5}));
+			// Bottom point
+			heartBgPixels.push(new Kinetic.Rect({x: 2, y: 5, width: 5, height: 1, fill: '#2a2a2a', stroke: '#000000', strokeWidth: 0.5}));
+			heartBgPixels.push(new Kinetic.Rect({x: 3, y: 6, width: 3, height: 1, fill: '#2a2a2a', stroke: '#000000', strokeWidth: 0.5}));
+			heartBgPixels.push(new Kinetic.Rect({x: 4, y: 7, width: 1, height: 1, fill: '#2a2a2a', stroke: '#000000', strokeWidth: 0.5}));
+			
+			for (var p = 0; p < heartBgPixels.length; p++) {
+				heartGroup.add(heartBgPixels[p]);
+			}
+			
+			// Heart fill (red) - full heart
+			var heartFillGroup = new Kinetic.Group({opacity: 0});
+			heartFillGroup.add(new Kinetic.Rect({x: 1, y: 2, width: 2, height: 2, fill: '#ff0000'}));
+			heartFillGroup.add(new Kinetic.Rect({x: 0, y: 3, width: 2, height: 2, fill: '#ff0000'}));
+			heartFillGroup.add(new Kinetic.Rect({x: 0, y: 4, width: 2, height: 1, fill: '#ff0000'}));
+			heartFillGroup.add(new Kinetic.Rect({x: 6, y: 2, width: 2, height: 2, fill: '#ff0000'}));
+			heartFillGroup.add(new Kinetic.Rect({x: 7, y: 3, width: 2, height: 2, fill: '#ff0000'}));
+			heartFillGroup.add(new Kinetic.Rect({x: 7, y: 4, width: 2, height: 1, fill: '#ff0000'}));
+			heartFillGroup.add(new Kinetic.Rect({x: 2, y: 5, width: 5, height: 1, fill: '#ff0000'}));
+			heartFillGroup.add(new Kinetic.Rect({x: 3, y: 6, width: 3, height: 1, fill: '#ff0000'}));
+			heartFillGroup.add(new Kinetic.Rect({x: 4, y: 7, width: 1, height: 1, fill: '#ff0000'}));
+			
+			// Half heart fill (pink for half hearts) - left half only
+			var heartHalfFillGroup = new Kinetic.Group({opacity: 0});
+			heartHalfFillGroup.add(new Kinetic.Rect({x: 1, y: 2, width: 2, height: 2, fill: '#ff9999'}));
+			heartHalfFillGroup.add(new Kinetic.Rect({x: 0, y: 3, width: 2, height: 2, fill: '#ff9999'}));
+			heartHalfFillGroup.add(new Kinetic.Rect({x: 0, y: 4, width: 2, height: 1, fill: '#ff9999'}));
+			
+			heartGroup.add(heartFillGroup);
+			heartGroup.add(heartHalfFillGroup);
+			this.hearts.push({
+				group: heartGroup,
+				full: heartFillGroup,
+				half: heartHalfFillGroup
+			});
+			this.healthBarGroup.add(heartGroup);
+		}
+		
+		// Agent HP text label (Minecraft-style font)
+		this.healthBarText = new Kinetic.Text({
+			x: 0,
+			y: (Math.ceil(totalHearts / this.heartsPerRow)) * (this.heartSize + this.heartSpacing) + 5,
+			fontSize: 16,
+			fontStyle: 'bold',
+			fontFamily: 'Arial',
+			fill: '#ffffff',
+			text: 'Agent HP: 50',
+			shadowColor: '#000000',
+			shadowBlur: 2,
+			shadowOffset: {x: 1, y: 1},
+			shadowOpacity: 1
+		});
+		
+		this.healthBarGroup.add(this.healthBarText);
 
 		this.user = null;
 
@@ -85,10 +171,11 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 
 		// bind all layers
 		this.firstLayer.add(this.background);
+		this.firstLayer.add(this.backgroundOverlay);
 		this.mainLayer.add(this.shootGroup);
 		this.mainLayer.add(this.enemyGroup);
 		this.mainLayer.add(this.playerGroup);
-		this.mainLayer.add(this.text);
+		this.mainLayer.add(this.healthBarGroup);
 		this.lastLayer.add(this.foreground);
 
 		var E1 = 0.05; // epsilon for angle comparison
@@ -237,12 +324,36 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 	};
 
 	/**
-	 * Renders up-to-date text with HP.
+	 * Renders up-to-date Minecraft-style health bar with hearts.
 	 */
 	Game.prototype.refreshText = function() {
 		// Ensure HP is never displayed as negative
 		var displayHP = Math.max(0, this.playerHP);
-		this.text.setText('Player HP: ' + displayHP);
+		
+		// Update hearts based on HP (each heart = 2 HP, like Minecraft)
+		var totalHearts = Math.ceil(this.maxHP / 2);
+		for (var i = 0; i < totalHearts; i++) {
+			var heartHP = displayHP - (i * 2);
+			var heart = this.hearts[i];
+			
+			if (heartHP >= 2) {
+				// Full heart
+				heart.full.setOpacity(1);
+				heart.half.setOpacity(0);
+			} else if (heartHP >= 1) {
+				// Half heart
+				heart.full.setOpacity(0);
+				heart.half.setOpacity(1);
+			} else {
+				// Empty heart
+				heart.full.setOpacity(0);
+				heart.half.setOpacity(0);
+			}
+		}
+		
+		// Update text
+		this.healthBarText.setText('Agent HP: ' + displayHP);
+		
 		this.mainLayer.draw();
 	};
 
@@ -280,6 +391,8 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		this.stage.setHeight(height);
 		this.background.setWidth(width);
 		this.background.setHeight(height);
+		this.backgroundOverlay.setWidth(width);
+		this.backgroundOverlay.setHeight(height);
 		this.foreground.setWidth(width);
 		this.foreground.setHeight(height);
 		this.stage.draw();

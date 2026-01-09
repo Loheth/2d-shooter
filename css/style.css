@@ -187,25 +187,3 @@ html, body {
 #start-screen.hidden {
 	display: none;
 }
-
-/* System Compromised Modal Styles */
-#system-compromised .modal-body {
-	overflow: hidden !important;
-	max-height: none !important;
-	overflow-y: hidden !important;
-	overflow-x: hidden !important;
-}
-
-#system-compromised .modal-dialog {
-	overflow: visible;
-	max-height: 90vh;
-}
-
-#system-compromised .modal-content {
-	overflow: hidden;
-}
-
-#leaderboard-section {
-	overflow-y: auto;
-	max-height: 400px;
-}

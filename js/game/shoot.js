@@ -17,8 +17,8 @@ define(function() {
 			this.shoots[i] = new Kinetic.Line({
 				points: [-1,-1, -2,-2],
 				strokeWidth: 3,
-				stroke: '#2d6999',
-				shadowColor: 'navy',
+				stroke: '#ff0000',
+				shadowColor: '#990000',
 				lineCap: 'round',
 				opacity: 0.0
 			});
