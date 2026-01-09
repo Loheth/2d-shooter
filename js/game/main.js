@@ -51,29 +51,34 @@ require(["game","users","htmlBuilder"], function(Game, Users, HTMLBuilder) {
 	
 	var game = new Game();
 	var running = false;
-	var pendingGameResult = null; // Store game result until user enters name
+	var currentGameResult = null;
 	game.init();
 	game.setUser(users.loggedUser());
 	game.gameOverCallback = function(result) {
-		var time =  Math.round(result.time / 100) / 10;
-		// Store the result temporarily - don't save yet
-		pendingGameResult = {
+		var time = Math.round(result.time / 100) / 10;
+		currentGameResult = {
 			time: time,
 			kills: result.kills
 		};
 		running = false;
-		// Clear current user so score doesn't get saved to wrong user
-		users.currentUser = null;
-		$('#message-score').text("GAME OVER: You've killed " + result.kills + " enemies, in " + time + "s.");
-		// Show system-compromised modal
-		$('#system-compromised').modal('show');
-		// Reset modal to name input state
-		$('#name-input-section').show();
-		$('#leaderboard-section').hide();
-		$('#submit-name').show();
-		$('#play-again-btn').hide();
-		$('#quit-btn').hide();
+		
+		// Show game over popup with stats
+		var statsText = "You've killed " + result.kills + " enemies in " + time + "s.";
+		$('#game-over-stats').text(statsText);
 		$('#player-name-input').val('');
+		
+		// Show leaderboard in game over popup
+		var allUsers = users.getAllUsers();
+		var leaderboardHTML = builder.buildLeaderboardTable(allUsers);
+		$('#game-over-leaderboard').empty().append(leaderboardHTML);
+		
+		// Reset button visibility
+		$('#submit-name-btn').show();
+		$('#begin-new-game-btn').hide();
+		
+		$('#game-over-popup').modal('show');
+		// Add class to body for backdrop styling
+		$('body').addClass('game-over-open');
 	};
 
 	game.playground.on('keypress', function(event) {
@@ -94,10 +99,8 @@ require(["game","users","htmlBuilder"], function(Game, Users, HTMLBuilder) {
 	W.resize(function() {
 		game.resizePlayground(getWidth(), getHeight());
 	});
-	$('#game-menu, #settings, #users, #about, #system-compromised').on('hidden', function() {
-		if ($('#playground').is(':visible')) {
-			game.playground.focus();
-		}
+	$('#game-menu, #settings, #users, #about').on('hidden', function() {
+		game.playground.focus();
 	});
 
 	$('#game-begin').on('click', function() {
@@ -137,78 +140,101 @@ require(["game","users","htmlBuilder"], function(Game, Users, HTMLBuilder) {
 		running = true;
 	});
 
-	// Handle submit name button - show leaderboard and action buttons
-	$('#submit-name').on('click', function() {
+	// Game over popup - submit name handler
+	$('#submit-name-btn').on('click', function() {
 		var playerName = $('#player-name-input').val().trim();
-		if (playerName) {
-			// Find existing user or create new one
-			var existingUser = null;
+		if (playerName === '') {
+			playerName = 'Player';
+		}
+		
+		// Create or get user
+		var loggedUser = users.loggedUser();
+		if (!loggedUser || loggedUser.name !== playerName) {
+			// Create new user or login as existing
 			var allUsers = users.getAllUsers();
+			var existingUser = null;
 			for (var i = 0; i < allUsers.length; i++) {
 				if (allUsers[i].name === playerName) {
 					existingUser = allUsers[i];
 					break;
 				}
 			}
-			var userToLogin = existingUser;
-			if (!existingUser) {
-				userToLogin = users.newUser(playerName);
+			
+			if (existingUser) {
+				users.login(existingUser.id);
+			} else {
+				var newUser = users.newUser(playerName);
+				users.login(newUser.id);
 			}
-			users.login(userToLogin.id);
 			game.setUser(users.loggedUser());
-			
-			// NOW save the score to the correct user
-			if (pendingGameResult) {
-				users.updateScore(pendingGameResult.time, pendingGameResult.kills);
-				pendingGameResult = null; // Clear it after saving
-			}
-			
-			// Show leaderboard
-			var leaderboard = builder.buildLeaderboardTable(users.getTop5Leaderboard());
-			$('#leaderboard-content').empty().append(leaderboard);
-			$('#name-input-section').hide();
-			$('#leaderboard-section').show();
-			$('#submit-name').hide();
-			$('#play-again-btn').show();
-			$('#quit-btn').show();
+		}
+		
+		// Update score
+		if (currentGameResult) {
+			users.updateScore(currentGameResult.time, currentGameResult.kills);
+		}
+		
+		// Update leaderboard with new score
+		var allUsers = users.getAllUsers();
+		var leaderboardHTML = builder.buildLeaderboardTable(allUsers);
+		$('#game-over-leaderboard').empty().append(leaderboardHTML);
+		
+		// Hide submit button and show begin new game button
+		$('#submit-name-btn').hide();
+		$('#begin-new-game-btn').show();
+		$('#player-name-input').prop('disabled', true);
+	});
+
+	// Allow Enter key to submit name
+	$('#player-name-input').on('keypress', function(e) {
+		if (e.which === 13) { // Enter key
+			$('#submit-name-btn').click();
 		}
 	});
 
-	// Play Again button handler - restart the game
-	$('#play-again-btn').on('click', function() {
-		$('#system-compromised').modal('hide');
-		// Reset modal state for next time
-		$('#name-input-section').show();
-		$('#leaderboard-section').hide();
-		$('#submit-name').show();
-		$('#play-again-btn').hide();
-		$('#quit-btn').hide();
-		$('#player-name-input').val('');
-		// Clear any pending game result
-		pendingGameResult = null;
-		// Restart the game
+	// Begin new game button handler
+	$('#begin-new-game-btn').on('click', function() {
+		$('#game-over-popup').modal('hide');
+		$('#playground').show();
+		game.playground.focus();
 		game.beginNewGame();
 		running = true;
-		game.playground.focus();
+		$('#message-score').text('');
+		// Reset input
+		$('#player-name-input').prop('disabled', false);
+		$('#submit-name-btn').show();
+		$('#begin-new-game-btn').hide();
 	});
 
-	// Quit button handler - go back to start screen
-	$('#quit-btn').on('click', function() {
-		$('#system-compromised').modal('hide');
-		// Reset modal state for next time
-		$('#name-input-section').show();
-		$('#leaderboard-section').hide();
-		$('#submit-name').show();
-		$('#play-again-btn').hide();
-		$('#quit-btn').hide();
-		$('#player-name-input').val('');
-		// Clear any pending game result
-		pendingGameResult = null;
-		// Clear current user
-		users.currentUser = null;
-		// Hide playground and show start screen
+	// Quit game button handler
+	$('#quit-game-btn').on('click', function() {
+		$('#game-over-popup').modal('hide');
 		$('#playground').hide();
 		$('#start-screen').removeClass('hidden');
-		running = false;
+		// Reset input
+		$('#player-name-input').prop('disabled', false);
+		$('#submit-name-btn').show();
+		$('#begin-new-game-btn').hide();
+	});
+
+	// Close leaderboard handler
+	$('#close-leaderboard-btn').on('click', function() {
+		$('#leaderboard-modal').modal('hide');
+	});
+
+	// Function to show leaderboard
+	function showLeaderboard() {
+		var allUsers = users.getAllUsers();
+		var leaderboardHTML = builder.buildLeaderboardTable(allUsers);
+		$('#leaderboard-content').empty().append(leaderboardHTML);
+		$('#leaderboard-modal').modal('show');
+	}
+
+	// Handle modal close events
+	$('#game-over-popup, #leaderboard-modal').on('hidden', function() {
+		// Remove game-over class from body
+		$('body').removeClass('game-over-open');
+		// Focus back to playground when modals close
+		game.playground.focus();
 	});
 });

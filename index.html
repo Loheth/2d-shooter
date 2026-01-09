@@ -13,6 +13,9 @@
 	<link rel="stylesheet" href="css/normalize.css"/>
 	<link rel="stylesheet" href="css/bootstrap.min.css">
 	<link rel="stylesheet" href="css/style.css"/>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -101,6 +104,37 @@
 				</form>
 			</div>
 		</div>
+	</div>
+</div>
+
+<div id="game-over-popup" class="modal hide fade pixel-modal game-over-modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+	<div class="modal-header pixel-modal-header">
+		<h2 class="pixel-title game-over-title">GAME OVER</h2>
+	</div>
+	<div class="modal-body pixel-modal-body">
+		<p class="pixel-text" id="game-over-stats"></p>
+		<div class="pixel-input-group">
+			<label class="pixel-label" for="player-name-input">Enter Your Name:</label>
+			<input type="text" id="player-name-input" class="pixel-input" maxlength="20" placeholder="Player Name" autofocus/>
+		</div>
+		<div id="game-over-leaderboard" class="pixel-leaderboard"></div>
+	</div>
+	<div class="modal-footer pixel-modal-footer">
+		<button id="quit-game-btn" class="pixel-btn pixel-btn-secondary">QUIT GAME</button>
+		<button id="submit-name-btn" class="pixel-btn pixel-btn-primary">SUBMIT</button>
+		<button id="begin-new-game-btn" class="pixel-btn pixel-btn-primary" style="display: none;">REBOOT SYSTEM</button>
+	</div>
+</div>
+
+<div id="leaderboard-modal" class="modal hide fade pixel-modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+	<div class="modal-header pixel-modal-header">
+		<h2 class="pixel-title">LEADERBOARD</h2>
+	</div>
+	<div class="modal-body pixel-modal-body">
+		<div id="leaderboard-content" class="pixel-leaderboard"></div>
+	</div>
+	<div class="modal-footer pixel-modal-footer">
+		<button id="close-leaderboard-btn" class="pixel-btn pixel-btn-primary">CLOSE</button>
 	</div>
 </div>
 

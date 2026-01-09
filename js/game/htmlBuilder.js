@@ -52,36 +52,39 @@ define(function() {
 	};
 
 	/**
-	 * Builds HTML table for leaderboard (top 3 players).
-	 * @param leaderboard array with top User objects to display
+	 * Builds HTML table for leaderboard display.
+	 * @param allUsers array with all User objects to display
 	 * @returns {jQuery|HTMLElement}
 	 */
-	HTMLBuilder.prototype.buildLeaderboardTable = function(leaderboard) {
-		if (!leaderboard || leaderboard.length < 1) {
+	HTMLBuilder.prototype.buildLeaderboardTable = function(allUsers) {
+		if (!allUsers || allUsers.length < 1) {
 			var empty = this.new('div');
-			empty.addClass('table-empty');
-			empty.append('<span>No scores yet. Be the first!</span>');
+			empty.addClass('pixel-empty');
+			empty.append('<span class="pixel-text">No scores yet. Be the first!</span>');
 			return empty;
 		}
 
 		var table = this.new('table');
-		table.addClass(this.tableClass);
+		table.addClass('pixel-table');
 
 		// make table-head
 		var thead = this.new('thead');
-		thead.append('<tr><th>Rank</th><th>Name</th><th class="text-right">Time [s]</th><th class="text-right">Kills</th></tr>');
+		thead.append('<tr><th class="pixel-th">Rank</th><th class="pixel-th">Name</th><th class="pixel-th">Time</th><th class="pixel-th">Kills</th></tr>');
 
 		// make table-body
 		var tbody = this.new('tbody');
-		for (var i = 0; i < leaderboard.length; i++) {
+		for (var i = 0; i < allUsers.length; i++) {
 			var row = this.new('tr');
+			row.addClass('pixel-tr');
+			if (i === 0) {
+				row.addClass('pixel-first');
+			}
 			var rank = i + 1;
-			var rankDisplay = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
-			row.append('<td><strong>' + rankDisplay + '</strong></td>');
-			row.append('<td>' + leaderboard[i].name + '</td>');
-			var score = leaderboard[i].highScore;
-			row.append('<td class="text-right">' + (score ? score.time.toFixed(1) : '-') + '</td>');
-			row.append('<td class="text-right">' + (score ? score.kills : '-') + '</td>');
+			row.append('<td class="pixel-td pixel-rank">' + rank + '</td>');
+			row.append('<td class="pixel-td pixel-name">' + allUsers[i].name + '</td>');
+			var score = allUsers[i].highScore;
+			row.append('<td class="pixel-td pixel-time">' + (score ? score.time + 's' : '-') + '</td>');
+			row.append('<td class="pixel-td pixel-kills">' + (score ? score.kills : '-') + '</td>');
 			tbody.append(row);
 		}
 

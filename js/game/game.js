@@ -287,10 +287,11 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 				time: new Date().getTime() - this.gameTime,
 				kills: this.enemyGenerator.killCount
 			};
+			// Pause immediately and show popup
+			this.pause();
 			setTimeout(function() {
-				self.pause();
 				self.gameOverCallback(result);
-			}, 3000);
+			}, 500); // Short delay for visual effect
 		}
 	};
 
