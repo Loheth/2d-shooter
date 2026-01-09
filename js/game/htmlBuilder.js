@@ -54,14 +54,21 @@ define(function() {
 	/**
 	 * Builds HTML table for leaderboard display.
 	 * @param allUsers array with all User objects to display
+	 * @param limit optional limit for number of users to display (default: all users)
 	 * @returns {jQuery|HTMLElement}
 	 */
-	HTMLBuilder.prototype.buildLeaderboardTable = function(allUsers) {
+	HTMLBuilder.prototype.buildLeaderboardTable = function(allUsers, limit) {
 		if (!allUsers || allUsers.length < 1) {
 			var empty = this.new('div');
 			empty.addClass('pixel-empty');
 			empty.append('<span class="pixel-text">No scores yet. Be the first!</span>');
 			return empty;
+		}
+
+		// Apply limit if specified
+		var usersToShow = allUsers;
+		if (limit && limit > 0) {
+			usersToShow = allUsers.slice(0, limit);
 		}
 
 		var table = this.new('table');
@@ -73,7 +80,7 @@ define(function() {
 
 		// make table-body
 		var tbody = this.new('tbody');
-		for (var i = 0; i < allUsers.length; i++) {
+		for (var i = 0; i < usersToShow.length; i++) {
 			var row = this.new('tr');
 			row.addClass('pixel-tr');
 			if (i === 0) {
@@ -81,8 +88,8 @@ define(function() {
 			}
 			var rank = i + 1;
 			row.append('<td class="pixel-td pixel-rank">' + rank + '</td>');
-			row.append('<td class="pixel-td pixel-name">' + allUsers[i].name + '</td>');
-			var score = allUsers[i].highScore;
+			row.append('<td class="pixel-td pixel-name">' + usersToShow[i].name + '</td>');
+			var score = usersToShow[i].highScore;
 			row.append('<td class="pixel-td pixel-time">' + (score ? score.time + 's' : '-') + '</td>');
 			row.append('<td class="pixel-td pixel-kills">' + (score ? score.kills : '-') + '</td>');
 			tbody.append(row);
@@ -91,6 +98,17 @@ define(function() {
 		table.append(thead);
 		table.append(tbody);
 		return table;
+	};
+
+	/**
+	 * Builds a "better luck next time" message for players not in top 5.
+	 * @returns {jQuery|HTMLElement}
+	 */
+	HTMLBuilder.prototype.buildBetterLuckMessage = function() {
+		var messageDiv = this.new('div');
+		messageDiv.addClass('pixel-better-luck');
+		messageDiv.html('Better luck next time to get in the leader board!');
+		return messageDiv;
 	};
 
 	/**

@@ -195,7 +195,6 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		this.healthBarGroup.add(this.healthBarText);
 
 		// Score bar components - positioned below Agent HP
-		this.score = 0;
 		this.scoreBarGroup = new Kinetic.Group({
 			x: 10, // Same x position as HP bar group
 			y: 10 + hpTextY + hpPanelHeight + 8 // Below HP panel with smaller spacing
@@ -249,7 +248,7 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 			fontStyle: 'bold',
 			fontFamily: 'VT323, Courier, monospace',
 			fill: '#00ffff',
-			text: '> SCORE: 0',
+			text: '> THREAT_ELIMINATED: 0',
 			shadowColor: '#00ffff',
 			shadowBlur: 6,
 			shadowOffset: {x: 0, y: 0},
@@ -366,14 +365,12 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 			}
 		};
 		
-		// Track score updates from enemy kills
+		// Track threat eliminated (kill count) updates
 		self.lastKillCount = 0;
 		self.scoreUpdateInterval = setInterval(function() {
 			if (self.enemyGenerator && self.enemyGenerator.killCount !== undefined) {
 				var currentKills = self.enemyGenerator.killCount;
 				if (currentKills > self.lastKillCount) {
-					// Score increases by 10 points per kill (Fortnite-style)
-					self.score += (currentKills - self.lastKillCount) * 10;
 					self.lastKillCount = currentKills;
 					self.refreshScore();
 				}
@@ -400,7 +397,6 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 	Game.prototype.beginNewGame = function() {
 		// clean-up before start
 		this.playerHP = 50;
-		this.score = 0; // Reset score
 		this.lastKillCount = 0; // Reset kill count tracking
 		this.gameEnded = false; // Reset game ended flag
 		this.player.setSpeed(this.playerSpeed);
@@ -508,12 +504,12 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 	};
 
 	/**
-	 * Renders up-to-date score bar (Fortnite/Minecraft style).
+	 * Renders up-to-date threat eliminated count.
 	 */
 	Game.prototype.refreshScore = function() {
-		// Format score with commas for thousands
-		var formattedScore = this.score.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-		this.scoreBarText.setText('> SCORE: ' + formattedScore);
+		// Display kill count (threats eliminated) like in leaderboard
+		var killCount = this.enemyGenerator ? this.enemyGenerator.killCount : 0;
+		this.scoreBarText.setText('> THREAT_ELIMINATED: ' + killCount);
 		this.mainLayer.draw();
 	};
 
