@@ -193,30 +193,33 @@ define(function() {
 					var playerX = player.getX();
 					var playerY = player.getY();
 					
-					// Calculate direction from player to mouse click
+					// Calculate direction from player to mouse cursor
 					var dx = x - playerX;
 					var dy = y - playerY;
 					var distance = Math.sqrt(dx * dx + dy * dy);
 					
-					// Handle edge case where mouse is exactly on player
-					if (distance < 1) {
-						distance = 1;
-						dx = 1;
-						dy = 0;
+					// Calculate gun tip position - gun extends from center to edge in shooting direction
+					// The gun tip is approximately at the edge of the sprite frame
+					var gunX = playerX;
+					var gunY = playerY;
+					
+					if (distance > 0) {
+						// Normalize direction vector
+						var dirX = dx / distance;
+						var dirY = dy / distance;
+						
+						// Gun tip offset - extends to the very edge of sprite frame
+						// The gun tip is at the edge of the sprite, so we use slightly more than half
+						// to ensure bullets spawn exactly at the gun tip
+						var gunOffsetX = dirX * (FRAME_WIDTH * 0.52);
+						var gunOffsetY = dirY * (FRAME_HEIGHT * 0.52);
+						
+						gunX = playerX + gunOffsetX;
+						gunY = playerY + gunOffsetY;
+					} else {
+						// If mouse is exactly on player, default to down direction
+						gunY = playerY + FRAME_HEIGHT * 0.52;
 					}
-					
-					// Normalize direction vector (unit vector pointing toward mouse)
-					var dirX = dx / distance;
-					var dirY = dy / distance;
-					
-					// Offset forward from player center to gun tip
-					// The gun extends forward from the character center toward the mouse
-					// Adjust the multiplier to fine-tune gun tip position:
-					// - Smaller values (0.3-0.4) = closer to center
-					// - Larger values (0.5-0.7) = further out toward gun tip
-					var gunOffset = FRAME_HEIGHT * 0.55; // Start with 0.55, adjust if needed
-					var gunX = playerX + dirX * gunOffset;
-					var gunY = playerY + dirY * gunOffset;
 					
 					var points = [ gunX, gunY, x, y ];
 					self.shootCallback(points);

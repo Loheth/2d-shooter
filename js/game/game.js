@@ -122,22 +122,151 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 			this.healthBarGroup.add(heartGroup);
 		}
 		
-		// Agent HP text label (Minecraft-style font)
-		this.healthBarText = new Kinetic.Text({
+		// Calculate HP text position
+		var hpTextY = (Math.ceil(totalHearts / this.heartsPerRow)) * (this.heartSize + this.heartSpacing) + 5;
+		
+		// Cybersecurity-themed Agent HP panel (smaller size)
+		var hpPanelWidth = 180;
+		var hpPanelHeight = 35;
+		var hpPanelBg = new Kinetic.Rect({
 			x: 0,
-			y: (Math.ceil(totalHearts / this.heartsPerRow)) * (this.heartSize + this.heartSpacing) + 5,
-			fontSize: 16,
-			fontStyle: 'bold',
-			fontFamily: 'Arial',
-			fill: '#ffffff',
-			text: 'Agent HP: 50',
-			shadowColor: '#000000',
-			shadowBlur: 2,
-			shadowOffset: {x: 1, y: 1},
-			shadowOpacity: 1
+			y: hpTextY,
+			width: hpPanelWidth,
+			height: hpPanelHeight,
+			fill: '#0a0a0a',
+			stroke: '#00ff00',
+			strokeWidth: 2,
+			cornerRadius: 0
 		});
 		
+		// Inner glow effect
+		var hpPanelGlow = new Kinetic.Rect({
+			x: 2,
+			y: hpTextY + 2,
+			width: hpPanelWidth - 4,
+			height: hpPanelHeight - 4,
+			fill: 'rgba(0, 255, 0, 0.1)',
+			stroke: '#00ff00',
+			strokeWidth: 1,
+			cornerRadius: 0
+		});
+		
+		// Corner brackets (cybersecurity terminal style) - smaller
+		var bracketSize = 6;
+		var bracketThickness = 2;
+		// Top-left bracket
+		var topLeftBracket1 = new Kinetic.Rect({x: 4, y: hpTextY + 4, width: bracketSize, height: bracketThickness, fill: '#00ff00'});
+		var topLeftBracket2 = new Kinetic.Rect({x: 4, y: hpTextY + 4, width: bracketThickness, height: bracketSize, fill: '#00ff00'});
+		// Top-right bracket
+		var topRightBracket1 = new Kinetic.Rect({x: hpPanelWidth - 4 - bracketSize, y: hpTextY + 4, width: bracketSize, height: bracketThickness, fill: '#00ff00'});
+		var topRightBracket2 = new Kinetic.Rect({x: hpPanelWidth - 4 - bracketThickness, y: hpTextY + 4, width: bracketThickness, height: bracketSize, fill: '#00ff00'});
+		// Bottom-left bracket
+		var bottomLeftBracket1 = new Kinetic.Rect({x: 4, y: hpTextY + hpPanelHeight - 4 - bracketThickness, width: bracketSize, height: bracketThickness, fill: '#00ff00'});
+		var bottomLeftBracket2 = new Kinetic.Rect({x: 4, y: hpTextY + hpPanelHeight - 4 - bracketSize, width: bracketThickness, height: bracketSize, fill: '#00ff00'});
+		// Bottom-right bracket
+		var bottomRightBracket1 = new Kinetic.Rect({x: hpPanelWidth - 4 - bracketSize, y: hpTextY + hpPanelHeight - 4 - bracketThickness, width: bracketSize, height: bracketThickness, fill: '#00ff00'});
+		var bottomRightBracket2 = new Kinetic.Rect({x: hpPanelWidth - 4 - bracketThickness, y: hpTextY + hpPanelHeight - 4 - bracketSize, width: bracketThickness, height: bracketSize, fill: '#00ff00'});
+		
+		// Agent HP text label (cybersecurity terminal style) - smaller font
+		this.healthBarText = new Kinetic.Text({
+			x: 15,
+			y: hpTextY + 8,
+			fontSize: 14,
+			fontStyle: 'bold',
+			fontFamily: 'VT323, Courier, monospace',
+			fill: '#00ff00',
+			text: '> AGENT_HP: 50',
+			shadowColor: '#00ff00',
+			shadowBlur: 6,
+			shadowOffset: {x: 0, y: 0},
+			shadowOpacity: 0.8
+		});
+		
+		this.healthBarGroup.add(hpPanelBg);
+		this.healthBarGroup.add(hpPanelGlow);
+		this.healthBarGroup.add(topLeftBracket1);
+		this.healthBarGroup.add(topLeftBracket2);
+		this.healthBarGroup.add(topRightBracket1);
+		this.healthBarGroup.add(topRightBracket2);
+		this.healthBarGroup.add(bottomLeftBracket1);
+		this.healthBarGroup.add(bottomLeftBracket2);
+		this.healthBarGroup.add(bottomRightBracket1);
+		this.healthBarGroup.add(bottomRightBracket2);
 		this.healthBarGroup.add(this.healthBarText);
+
+		// Score bar components - positioned below Agent HP
+		this.score = 0;
+		this.scoreBarGroup = new Kinetic.Group({
+			x: 10, // Same x position as HP bar group
+			y: 10 + hpTextY + hpPanelHeight + 8 // Below HP panel with smaller spacing
+		});
+		
+		// Cybersecurity-themed Score panel (smaller size)
+		var scorePanelWidth = 180;
+		var scorePanelHeight = 35;
+		var scorePanelBg = new Kinetic.Rect({
+			x: 0,
+			y: 0,
+			width: scorePanelWidth,
+			height: scorePanelHeight,
+			fill: '#0a0a0a',
+			stroke: '#00ffff',
+			strokeWidth: 2,
+			cornerRadius: 0
+		});
+		
+		// Inner glow effect (cyan)
+		var scorePanelGlow = new Kinetic.Rect({
+			x: 2,
+			y: 2,
+			width: scorePanelWidth - 4,
+			height: scorePanelHeight - 4,
+			fill: 'rgba(0, 255, 255, 0.1)',
+			stroke: '#00ffff',
+			strokeWidth: 1,
+			cornerRadius: 0
+		});
+		
+		// Corner brackets (cyan) - smaller
+		// Top-left bracket
+		var scoreTopLeftBracket1 = new Kinetic.Rect({x: 4, y: 4, width: bracketSize, height: bracketThickness, fill: '#00ffff'});
+		var scoreTopLeftBracket2 = new Kinetic.Rect({x: 4, y: 4, width: bracketThickness, height: bracketSize, fill: '#00ffff'});
+		// Top-right bracket
+		var scoreTopRightBracket1 = new Kinetic.Rect({x: scorePanelWidth - 4 - bracketSize, y: 4, width: bracketSize, height: bracketThickness, fill: '#00ffff'});
+		var scoreTopRightBracket2 = new Kinetic.Rect({x: scorePanelWidth - 4 - bracketThickness, y: 4, width: bracketThickness, height: bracketSize, fill: '#00ffff'});
+		// Bottom-left bracket
+		var scoreBottomLeftBracket1 = new Kinetic.Rect({x: 4, y: scorePanelHeight - 4 - bracketThickness, width: bracketSize, height: bracketThickness, fill: '#00ffff'});
+		var scoreBottomLeftBracket2 = new Kinetic.Rect({x: 4, y: scorePanelHeight - 4 - bracketSize, width: bracketThickness, height: bracketSize, fill: '#00ffff'});
+		// Bottom-right bracket
+		var scoreBottomRightBracket1 = new Kinetic.Rect({x: scorePanelWidth - 4 - bracketSize, y: scorePanelHeight - 4 - bracketThickness, width: bracketSize, height: bracketThickness, fill: '#00ffff'});
+		var scoreBottomRightBracket2 = new Kinetic.Rect({x: scorePanelWidth - 4 - bracketThickness, y: scorePanelHeight - 4 - bracketSize, width: bracketThickness, height: bracketSize, fill: '#00ffff'});
+		
+		// Score text (cybersecurity terminal style) - smaller font
+		this.scoreBarText = new Kinetic.Text({
+			x: 15,
+			y: 8,
+			fontSize: 14,
+			fontStyle: 'bold',
+			fontFamily: 'VT323, Courier, monospace',
+			fill: '#00ffff',
+			text: '> SCORE: 0',
+			shadowColor: '#00ffff',
+			shadowBlur: 6,
+			shadowOffset: {x: 0, y: 0},
+			shadowOpacity: 0.8
+		});
+		
+		this.scoreBarGroup.add(scorePanelBg);
+		this.scoreBarGroup.add(scorePanelGlow);
+		this.scoreBarGroup.add(scoreTopLeftBracket1);
+		this.scoreBarGroup.add(scoreTopLeftBracket2);
+		this.scoreBarGroup.add(scoreTopRightBracket1);
+		this.scoreBarGroup.add(scoreTopRightBracket2);
+		this.scoreBarGroup.add(scoreBottomLeftBracket1);
+		this.scoreBarGroup.add(scoreBottomLeftBracket2);
+		this.scoreBarGroup.add(scoreBottomRightBracket1);
+		this.scoreBarGroup.add(scoreBottomRightBracket2);
+		this.scoreBarGroup.add(this.scoreBarText);
 
 		this.user = null;
 
@@ -158,6 +287,8 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		this.gamePauseTime = null;
 		this.gameOverCallback = null;
 		this.gameEnded = false;
+		this.scoreUpdateInterval = null;
+		this.lastKillCount = 0;
 	}
 
 	/**
@@ -176,6 +307,7 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		this.mainLayer.add(this.enemyGroup);
 		this.mainLayer.add(this.playerGroup);
 		this.mainLayer.add(this.healthBarGroup);
+		this.mainLayer.add(this.scoreBarGroup);
 		this.lastLayer.add(this.foreground);
 
 		var E1 = 0.05; // epsilon for angle comparison
@@ -233,6 +365,20 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 				}
 			}
 		};
+		
+		// Track score updates from enemy kills
+		self.lastKillCount = 0;
+		self.scoreUpdateInterval = setInterval(function() {
+			if (self.enemyGenerator && self.enemyGenerator.killCount !== undefined) {
+				var currentKills = self.enemyGenerator.killCount;
+				if (currentKills > self.lastKillCount) {
+					// Score increases by 10 points per kill (Fortnite-style)
+					self.score += (currentKills - self.lastKillCount) * 10;
+					self.lastKillCount = currentKills;
+					self.refreshScore();
+				}
+			}
+		}, 100); // Check every 100ms
 		var goToCallback = function() {
 			this.goTo(player.getPosition());
 		};
@@ -254,11 +400,14 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 	Game.prototype.beginNewGame = function() {
 		// clean-up before start
 		this.playerHP = 50;
+		this.score = 0; // Reset score
+		this.lastKillCount = 0; // Reset kill count tracking
 		this.gameEnded = false; // Reset game ended flag
 		this.player.setSpeed(this.playerSpeed);
 		this.enemyGenerator.clean();
 		this.enemyGenerator.setDifficulty(this.difficulty);
 		this.refreshText();
+		this.refreshScore();
 
 		// start new game
 		this.player.gameBegin();
@@ -352,9 +501,19 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 			}
 		}
 		
-		// Update text
-		this.healthBarText.setText('Agent HP: ' + displayHP);
+		// Update text with cybersecurity theme
+		this.healthBarText.setText('> AGENT_HP: ' + displayHP);
 		
+		this.mainLayer.draw();
+	};
+
+	/**
+	 * Renders up-to-date score bar (Fortnite/Minecraft style).
+	 */
+	Game.prototype.refreshScore = function() {
+		// Format score with commas for thousands
+		var formattedScore = this.score.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+		this.scoreBarText.setText('> SCORE: ' + formattedScore);
 		this.mainLayer.draw();
 	};
 
