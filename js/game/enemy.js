@@ -8,40 +8,40 @@ define(function() {
 	// animation frames in the enemy sprite
 	var enemyAnimation = {
 		walk: [
-			{ x:   0, y:   0, width: 100, height: 100 },
-			{ x: 100, y:   0, width: 100, height: 100 },
-			{ x: 200, y:   0, width: 100, height: 100 },
-			{ x: 300, y:   0, width: 100, height: 100 },
-			{ x: 400, y:   0, width: 100, height: 100 },
-			{ x:   0, y: 100, width: 100, height: 100 },
-			{ x: 100, y: 100, width: 100, height: 100 },
-			{ x: 200, y: 100, width: 100, height: 100 },
-			{ x: 300, y: 100, width: 100, height: 100 },
-			{ x: 400, y: 100, width: 100, height: 100 }
+			{ x:   0, y:   0, width: 91, height: 91 },
+			{ x:  91, y:   0, width: 91, height: 91 },
+			{ x: 182, y:   0, width: 91, height: 91 },
+			{ x: 273, y:   0, width: 91, height: 91 },
+			{ x: 364, y:   0, width: 91, height: 91 },
+			{ x:   0, y:  91, width: 91, height: 91 },
+			{ x:  91, y:  91, width: 91, height: 91 },
+			{ x: 182, y:  91, width: 91, height: 91 },
+			{ x: 273, y:  91, width: 91, height: 91 },
+			{ x: 364, y:  91, width: 91, height: 91 }
 		],
 		stand: [
-			{ x:   0, y: 200, width: 100, height: 100 },
-			{ x: 100, y: 200, width: 100, height: 100 },
-			{ x: 200, y: 200, width: 100, height: 100 },
-			{ x: 300, y: 200, width: 100, height: 100 },
-			{ x: 400, y: 200, width: 100, height: 100 },
-			{ x:   0, y: 300, width: 100, height: 100 },
-			{ x: 100, y: 300, width: 100, height: 100 },
-			{ x: 200, y: 300, width: 100, height: 100 },
-			{ x: 300, y: 300, width: 100, height: 100 },
-			{ x: 400, y: 300, width: 100, height: 100 }
+			{ x:   0, y: 182, width: 91, height: 91 },
+			{ x:  91, y: 182, width: 91, height: 91 },
+			{ x: 182, y: 182, width: 91, height: 91 },
+			{ x: 273, y: 182, width: 91, height: 91 },
+			{ x: 364, y: 182, width: 91, height: 91 },
+			{ x:   0, y: 273, width: 91, height: 91 },
+			{ x:  91, y: 273, width: 91, height: 91 },
+			{ x: 182, y: 273, width: 91, height: 91 },
+			{ x: 273, y: 273, width: 91, height: 91 },
+			{ x: 364, y: 273, width: 91, height: 91 }
 		],
 		attack: [
-			{ x:   0, y: 400, width: 100, height: 100 },
-			{ x: 100, y: 400, width: 100, height: 100 },
-			{ x: 200, y: 400, width: 100, height: 100 },
-			{ x: 300, y: 400, width: 100, height: 100 },
-			{ x: 400, y: 400, width: 100, height: 100 },
-			{ x:   0, y: 500, width: 100, height: 100 },
-			{ x: 100, y: 500, width: 100, height: 100 },
-			{ x: 200, y: 500, width: 100, height: 100 },
-			{ x: 300, y: 500, width: 100, height: 100 },
-			{ x: 400, y: 500, width: 100, height: 100 }
+			{ x:   0, y: 364, width: 91, height: 91 },
+			{ x:  91, y: 364, width: 91, height: 91 },
+			{ x: 182, y: 364, width: 91, height: 91 },
+			{ x: 273, y: 364, width: 91, height: 91 },
+			{ x: 364, y: 364, width: 91, height: 91 },
+			{ x:   0, y: 455, width: 91, height: 91 },
+			{ x:  91, y: 455, width: 91, height: 91 },
+			{ x: 182, y: 455, width: 91, height: 91 },
+			{ x: 273, y: 455, width: 91, height: 91 },
+			{ x: 364, y: 455, width: 91, height: 91 }
 		]
 	};
 
@@ -57,7 +57,7 @@ define(function() {
 		this.sprite = new Kinetic.Sprite({
 			x: 0,
 			y: 0,
-			offset: [50,60],
+			offset: [45,45],
 			image: enemyImg,
 			animation: 'stand',
 			animations: enemyAnimation,
