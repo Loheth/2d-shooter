@@ -209,14 +209,19 @@ define(function() {
 						var dirY = dy / distance;
 						
 						// Gun tip offset - extends to edge of sprite frame
-						var gunOffsetX = dirX * (FRAME_WIDTH / 5);
-						var gunOffsetY = dirY * (FRAME_HEIGHT / 5);
+						var gunOffsetX = dirX * (FRAME_WIDTH / 4.5);
+						var gunOffsetY = dirY * (FRAME_HEIGHT / 4.5);
 						
-						gunX = playerX + gunOffsetX;
-						gunY = playerY + gunOffsetY;
+						// Perpendicular offset for left/right adjustment
+						// Perpendicular vector: rotate direction 90 degrees (-dirY, dirX)
+						// Adjust this value to fix left/right positioning:
+						var perpendicularOffset = 7;  // Try values like -8, -5, -3, 3, 5, 8, etc.
+						
+						gunX = playerX + gunOffsetX + (-dirY * perpendicularOffset);
+						gunY = playerY + gunOffsetY + (dirX * perpendicularOffset);
 					} else {
 						// If mouse is exactly on player, default to down direction
-						gunY = playerY + FRAME_HEIGHT / 5;
+						gunY = playerY + FRAME_HEIGHT / 4.5;
 					}
 					
 					var points = [ gunX, gunY, x, y ];
