@@ -67,8 +67,8 @@ require(["game","users","htmlBuilder"], function(Game, Users, HTMLBuilder) {
 		$('#game-over-stats').html(statsText.replace(/\n/g, '<br>'));
 		$('#player-name-input').val('');
 		
-		// Show leaderboard in game over popup
-		var allUsers = users.getAllUsers();
+		// Show leaderboard in game over popup (unique users by name)
+		var allUsers = users.getUniqueUsersByName();
 		var leaderboardHTML = builder.buildLeaderboardTable(allUsers);
 		$('#game-over-leaderboard').empty().append(leaderboardHTML);
 		
@@ -147,35 +147,36 @@ require(["game","users","htmlBuilder"], function(Game, Users, HTMLBuilder) {
 			playerName = 'Player';
 		}
 		
-		// Create or get user
+		// Create or get user - ensure no duplicates by name
 		var loggedUser = users.loggedUser();
-		if (!loggedUser || loggedUser.name !== playerName) {
-			// Create new user or login as existing
-			var allUsers = users.getAllUsers();
-			var existingUser = null;
-			for (var i = 0; i < allUsers.length; i++) {
-				if (allUsers[i].name === playerName) {
-					existingUser = allUsers[i];
-					break;
-				}
-			}
-			
-			if (existingUser) {
-				users.login(existingUser.id);
-			} else {
-				var newUser = users.newUser(playerName);
-				users.login(newUser.id);
-			}
-			game.setUser(users.loggedUser());
+		var targetUser = null;
+		
+		// Always check if user with this name already exists
+		var existingUser = users.findUserByName(playerName);
+		
+		if (existingUser) {
+			// User with this name exists, use it
+			users.login(existingUser.id);
+			targetUser = existingUser;
+		} else if (!loggedUser || loggedUser.name !== playerName) {
+			// No user with this name exists, create new one
+			var newUser = users.newUser(playerName);
+			users.login(newUser.id);
+			targetUser = newUser;
+		} else {
+			// Already logged in as this user
+			targetUser = loggedUser;
 		}
+		
+		game.setUser(users.loggedUser());
 		
 		// Update score
 		if (currentGameResult) {
 			users.updateScore(currentGameResult.time, currentGameResult.kills);
 		}
 		
-		// Update leaderboard with new score
-		var allUsers = users.getAllUsers();
+		// Update leaderboard with new score (unique users by name)
+		var allUsers = users.getUniqueUsersByName();
 		var leaderboardHTML = builder.buildLeaderboardTable(allUsers);
 		$('#game-over-leaderboard').empty().append(leaderboardHTML);
 		
@@ -224,7 +225,7 @@ require(["game","users","htmlBuilder"], function(Game, Users, HTMLBuilder) {
 
 	// Function to show leaderboard
 	function showLeaderboard() {
-		var allUsers = users.getAllUsers();
+		var allUsers = users.getUniqueUsersByName();
 		var leaderboardHTML = builder.buildLeaderboardTable(allUsers);
 		$('#leaderboard-content').empty().append(leaderboardHTML);
 		$('#leaderboard-modal').modal('show');

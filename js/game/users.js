@@ -78,6 +78,65 @@ define(function() {
 	};
 
 	/**
+	 * @returns {Array} unique User objects by name (keeps best score for each name)
+	 */
+	Users.prototype.getUniqueUsersByName = function() {
+		var all = this.getAllUsers();
+		var uniqueMap = {};
+		
+		// Keep only the best score for each unique name
+		for (var i = 0; i < all.length; i++) {
+			var user = all[i];
+			var name = user.name;
+			
+			if (!uniqueMap[name]) {
+				// First occurrence of this name
+				uniqueMap[name] = user;
+			} else {
+				// Compare scores - keep the better one
+				var existingScore = uniqueMap[name].highScore;
+				var newScore = user.highScore;
+				
+				if (scoreComparator(newScore, existingScore) < 0) {
+					// New score is better, replace
+					uniqueMap[name] = user;
+				}
+			}
+		}
+		
+		// Convert map back to array and sort
+		var unique = [];
+		for (var key in uniqueMap) {
+			if (uniqueMap.hasOwnProperty(key)) {
+				unique.push(uniqueMap[key]);
+			}
+		}
+		
+		// Sort by high-score
+		unique.sort(function(one, two) {
+			return scoreComparator(one.highScore, two.highScore);
+		});
+		
+		return unique;
+	};
+
+	/**
+	 * Finds a user by name, returns null if not found.
+	 * @param name String user name
+	 * @returns {User|null} User object or null
+	 */
+	Users.prototype.findUserByName = function(name) {
+		for (var key in this.allUsers) {
+			if (this.allUsers.hasOwnProperty(key)) {
+				if (this.allUsers[key].name === name) {
+					return this.allUsers[key];
+				}
+			}
+		}
+		return null;
+	};
+
+	/**
 	 * @returns {User} currently logged User
 	 */
 	Users.prototype.loggedUser = function() {
@@ -122,9 +181,12 @@ define(function() {
 	 */
 	Users.prototype.updateScore = function(time, kills) {
 		var score = new Score(time, kills);
-		if (this.currentUser && scoreComparator(score, this.currentUser.highScore) < 0) {
-			this.currentUser.highScore = score;
-			this.persist();
+		if (this.currentUser) {
+			// Update score if it's better than current high score, or if no high score exists
+			if (!this.currentUser.highScore || scoreComparator(score, this.currentUser.highScore) < 0) {
+				this.currentUser.highScore = score;
+				this.persist();
+			}
 		}
 	};
 

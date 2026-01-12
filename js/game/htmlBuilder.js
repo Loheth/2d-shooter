@@ -52,6 +52,44 @@ define(function() {
 	};
 
 	/**
+	 * Builds HTML table for leaderboard with unique users by name.
+	 * @param allUsers array with all User objects to display
+	 * @returns {jQuery|HTMLElement}
+	 */
+	HTMLBuilder.prototype.buildLeaderboardTable = function(allUsers) {
+		if (!allUsers || allUsers.length < 1) {
+			var empty = this.new('div');
+			empty.addClass('table-empty');
+			empty.append('<span class="text-error">No scores yet. Be the first!</span>');
+			return empty;
+		}
+
+		var table = this.new('table');
+		table.addClass('pixel-table');
+
+		// make table-head
+		var thead = this.new('thead');
+		thead.append('<tr><th class="pixel-th">Rank</th><th class="pixel-th">Name</th><th class="pixel-th">Time [s]</th><th class="pixel-th">Kills</th></tr>');
+
+		// make table-body
+		var tbody = this.new('tbody');
+		for (var i = 0; i < allUsers.length; i++) {
+			var row = this.new('tr');
+			row.addClass('pixel-tr');
+			var score = allUsers[i].highScore;
+			row.append('<td class="pixel-td">' + (i + 1) + '</td>');
+			row.append('<td class="pixel-td">' + allUsers[i].name + '</td>');
+			row.append('<td class="pixel-td">' + (score ? score.time : '-') + '</td>');
+			row.append('<td class="pixel-td">' + (score ? score.kills : '-') + '</td>');
+			tbody.append(row);
+		}
+
+		table.append(thead);
+		table.append(tbody);
+		return table;
+	};
+
+	/**
 	 * Creates new HTML element wrapped by jQuery.
 	 * @param element String tag
 	 * @returns {jQuery|HTMLElement} new HTML element
