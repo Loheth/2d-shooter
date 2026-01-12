@@ -227,74 +227,38 @@ body.game-over-open .modal-backdrop {
 
 .pixel-modal .modal-content {
 	background: #0a0a0a;
-	border: 6px solid #00ff00;
+	border: 4px solid #00ff00;
 	border-image: none;
 	box-shadow: 
 		0 0 20px rgba(0, 255, 0, 0.5),
 		0 0 40px rgba(0, 255, 0, 0.3),
-		inset 0 0 20px rgba(0, 255, 0, 0.1),
-		0 0 0 4px rgba(0, 0, 0, 0.8),
-		0 0 0 8px rgba(0, 255, 0, 0.2);
+		inset 0 0 20px rgba(0, 255, 0, 0.1);
 	padding: 0;
 	position: relative;
 	overflow: hidden;
 	animation: terminal-flicker 0.15s infinite;
 }
 
-/* Enhanced outer border with pixelated effect */
-.pixel-modal .modal-content::after {
-	content: '';
-	position: absolute;
-	top: -10px;
-	left: -10px;
-	right: -10px;
-	bottom: -10px;
-	border: 3px solid #00ffff;
-	z-index: -1;
-	pointer-events: none;
-	opacity: 0.7;
-	animation: border-glow 2s ease-in-out infinite;
-	box-shadow: 
-		0 0 15px rgba(0, 255, 255, 0.4),
-		inset 0 0 15px rgba(0, 255, 255, 0.1);
+@keyframes terminal-flicker {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.98; }
 }
 
-@keyframes border-glow {
-	0%, 100% {
-		opacity: 0.5;
-		box-shadow: 
-			0 0 15px rgba(0, 255, 255, 0.4),
-			inset 0 0 15px rgba(0, 255, 255, 0.1);
-	}
-	50% {
-		opacity: 0.9;
-		box-shadow: 
-			0 0 25px rgba(0, 255, 255, 0.7),
-			inset 0 0 20px rgba(0, 255, 255, 0.2);
-	}
-}
-
-/* Inner border pulse effect */
+/* Pixelated border effect */
 .pixel-modal .modal-content::before {
 	content: '';
 	position: absolute;
-	top: -4px;
-	left: -4px;
-	right: -4px;
-	bottom: -4px;
+	top: -2px;
+	left: -2px;
+	right: -2px;
+	bottom: -2px;
 	background: linear-gradient(45deg, 
 		#00ff00 0%, 
 		transparent 25%, 
 		transparent 75%, 
 		#00ff00 100%);
-	z-index: -2;
+	z-index: -1;
 	animation: border-pulse 2s ease-in-out infinite;
-	pointer-events: none;
-}
-
-@keyframes terminal-flicker {
-	0%, 100% { opacity: 1; }
-	50% { opacity: 0.98; }
 }
 
 @keyframes border-pulse {
@@ -413,110 +377,6 @@ body.game-over-open .modal-backdrop {
 	padding: 30px;
 	color: #00ff00;
 	position: relative;
-	max-height: 60vh;
-	overflow-y: auto;
-	overflow-x: hidden;
-}
-
-/* Custom Scrollbar Styling - Cyber Security Theme */
-.pixel-modal-body::-webkit-scrollbar {
-	width: 16px;
-}
-
-.pixel-modal-body::-webkit-scrollbar-track {
-	background: #000000;
-	border: 2px solid #003300;
-	border-radius: 0;
-	box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.1);
-}
-
-.pixel-modal-body::-webkit-scrollbar-thumb {
-	background: repeating-linear-gradient(
-		0deg,
-		#00ff00 0px,
-		#00ff00 4px,
-		#00cc00 4px,
-		#00cc00 8px
-	);
-	border: 2px solid #000000;
-	border-radius: 0;
-	box-shadow: 
-		0 0 10px rgba(0, 255, 0, 0.5),
-		inset 0 0 5px rgba(0, 255, 0, 0.3),
-		inset 0 0 0 1px rgba(0, 0, 0, 0.5);
-	position: relative;
-}
-
-.pixel-modal-body::-webkit-scrollbar-thumb:hover {
-	background: linear-gradient(180deg, 
-		#00ffff 0%, 
-		#00cccc 50%, 
-		#00ffff 100%);
-	box-shadow: 
-		0 0 15px rgba(0, 255, 255, 0.7),
-		inset 0 0 8px rgba(0, 255, 255, 0.4);
-}
-
-.pixel-modal-body::-webkit-scrollbar-thumb:active {
-	background: repeating-linear-gradient(
-		0deg,
-		#00ccff 0px,
-		#00ccff 4px,
-		#0099cc 4px,
-		#0099cc 8px
-	);
-	box-shadow: 
-		0 0 15px rgba(0, 204, 255, 0.7),
-		inset 0 0 8px rgba(0, 204, 255, 0.4);
-}
-
-.pixel-modal-body::-webkit-scrollbar-button {
-	background: #000000;
-	border: 2px solid #003300;
-	height: 16px;
-	box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.2);
-}
-
-.pixel-modal-body::-webkit-scrollbar-button:hover {
-	background: #001100;
-	border-color: #00ff00;
-	box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.4);
-}
-
-.pixel-modal-body::-webkit-scrollbar-button:active {
-	background: #002200;
-}
-
-.pixel-modal-body::-webkit-scrollbar-button:single-button {
-	display: block;
-}
-
-.pixel-modal-body::-webkit-scrollbar-button:single-button:vertical:decrement {
-	border-bottom: 2px solid #00ff00;
-}
-
-.pixel-modal-body::-webkit-scrollbar-button:single-button:vertical:increment {
-	border-top: 2px solid #00ff00;
-}
-
-.pixel-modal-body::-webkit-scrollbar-corner {
-	background: #000000;
-	border: 2px solid #003300;
-	box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.1);
-}
-
-/* Firefox Scrollbar Styling */
-.pixel-modal-body {
-	scrollbar-width: thin;
-	scrollbar-color: #00ff00 #000000;
-}
-
-/* Additional scrollbar styling for Firefox */
-@supports (scrollbar-color: #00ff00 #000000) {
-	.pixel-modal-body {
-		scrollbar-width: auto;
-		scrollbar-color: #00ff00 #000000;
-	}
 }
 
 .pixel-modal-body::before {
@@ -718,85 +578,6 @@ body.game-over-open .modal-backdrop {
 	margin: 0;
 	padding: 0;
 	color: #004400;
-}
-
-/* Better Luck Message - High Visibility Styling */
-.pixel-better-luck {
-	padding: 40px 30px;
-	text-align: center;
-	border: 4px solid #00ff00;
-	background: rgba(0, 255, 0, 0.15);
-	margin: 20px 0;
-	font-family: 'VT323', monospace;
-	font-size: 28px;
-	color: #00ff00;
-	text-shadow: 
-		0 0 10px #00ff00,
-		0 0 20px #00ff00,
-		0 0 30px #00ff00,
-		2px 2px 0px #000000;
-	letter-spacing: 2px;
-	line-height: 1.6;
-	box-shadow: 
-		0 0 20px rgba(0, 255, 0, 0.4),
-		inset 0 0 20px rgba(0, 255, 0, 0.1);
-	position: relative;
-	animation: better-luck-pulse 2s ease-in-out infinite;
-}
-
-.pixel-better-luck::before {
-	content: '> ';
-	color: #00ffff;
-	text-shadow: 
-		0 0 10px #00ffff,
-		0 0 20px #00ffff;
-}
-
-.pixel-better-luck::after {
-	content: '';
-	position: absolute;
-	top: -4px;
-	left: -4px;
-	right: -4px;
-	bottom: -4px;
-	border: 2px solid #00ffff;
-	opacity: 0.6;
-	animation: better-luck-border 2s ease-in-out infinite;
-	pointer-events: none;
-}
-
-@keyframes better-luck-pulse {
-	0%, 100% {
-		box-shadow: 
-			0 0 20px rgba(0, 255, 0, 0.4),
-			inset 0 0 20px rgba(0, 255, 0, 0.1);
-		text-shadow: 
-			0 0 10px #00ff00,
-			0 0 20px #00ff00,
-			0 0 30px #00ff00,
-			2px 2px 0px #000000;
-	}
-	50% {
-		box-shadow: 
-			0 0 30px rgba(0, 255, 0, 0.7),
-			inset 0 0 30px rgba(0, 255, 0, 0.2);
-		text-shadow: 
-			0 0 15px #00ff00,
-			0 0 30px #00ff00,
-			0 0 45px #00ff00,
-			2px 2px 0px #000000;
-	}
-}
-
-@keyframes better-luck-border {
-	0%, 100% {
-		opacity: 0.4;
-		border-color: #00ffff;
-	}
-	50% {
-		opacity: 0.8;
-		border-color: #00ff00;
-	}
 }
 
 /* Modal Footer */

@@ -67,10 +67,9 @@ require(["game","users","htmlBuilder"], function(Game, Users, HTMLBuilder) {
 		$('#game-over-stats').html(statsText.replace(/\n/g, '<br>'));
 		$('#player-name-input').val('');
 		
-		// Show top 5 leaderboard in game over popup
+		// Show leaderboard in game over popup
 		var allUsers = users.getAllUsers();
-		var top5Users = allUsers.slice(0, 5);
-		var leaderboardHTML = builder.buildLeaderboardTable(top5Users);
+		var leaderboardHTML = builder.buildLeaderboardTable(allUsers);
 		$('#game-over-leaderboard').empty().append(leaderboardHTML);
 		
 		// Reset button visibility
@@ -175,30 +174,10 @@ require(["game","users","htmlBuilder"], function(Game, Users, HTMLBuilder) {
 			users.updateScore(currentGameResult.time, currentGameResult.kills);
 		}
 		
-		// Update leaderboard - show top 5 only, or message if player not in top 5
+		// Update leaderboard with new score
 		var allUsers = users.getAllUsers();
-		var currentUser = users.loggedUser();
-		var top5Users = allUsers.slice(0, 5);
-		
-		// Check if current user is in top 5
-		var isInTop5 = false;
-		if (currentUser && currentUser.highScore) {
-			for (var i = 0; i < top5Users.length; i++) {
-				if (top5Users[i].id === currentUser.id) {
-					isInTop5 = true;
-					break;
-				}
-			}
-		}
-		
-		// Show top 5 leaderboard or "better luck" message
-		if (isInTop5) {
-			var leaderboardHTML = builder.buildLeaderboardTable(top5Users);
-			$('#game-over-leaderboard').empty().append(leaderboardHTML);
-		} else {
-			var messageHTML = builder.buildBetterLuckMessage();
-			$('#game-over-leaderboard').empty().append(messageHTML);
-		}
+		var leaderboardHTML = builder.buildLeaderboardTable(allUsers);
+		$('#game-over-leaderboard').empty().append(leaderboardHTML);
 		
 		// Hide submit button and show begin new game button
 		$('#submit-name-btn').hide();

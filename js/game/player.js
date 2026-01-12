@@ -208,17 +208,15 @@ define(function() {
 						var dirX = dx / distance;
 						var dirY = dy / distance;
 						
-						// Gun tip offset - extends to the very edge of sprite frame
-						// The gun tip is at the edge of the sprite, so we use slightly more than half
-						// to ensure bullets spawn exactly at the gun tip
-						var gunOffsetX = dirX * (FRAME_WIDTH * 0.52);
-						var gunOffsetY = dirY * (FRAME_HEIGHT * 0.52);
+						// Gun tip offset - extends to edge of sprite frame
+						var gunOffsetX = dirX * (FRAME_WIDTH / 5);
+						var gunOffsetY = dirY * (FRAME_HEIGHT / 5);
 						
 						gunX = playerX + gunOffsetX;
 						gunY = playerY + gunOffsetY;
 					} else {
 						// If mouse is exactly on player, default to down direction
-						gunY = playerY + FRAME_HEIGHT * 0.52;
+						gunY = playerY + FRAME_HEIGHT / 5;
 					}
 					
 					var points = [ gunX, gunY, x, y ];
