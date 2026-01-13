@@ -267,6 +267,125 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		this.scoreBarGroup.add(scoreBottomRightBracket2);
 		this.scoreBarGroup.add(this.scoreBarText);
 
+		// Instruction panel components - positioned in top right
+		this.instructionPanelWidth = 220;
+		this.instructionPanelHeight = 80;
+		this.instructionPanelMargin = 10;
+		
+		this.instructionPanelGroup = new Kinetic.Group({
+			x: width - this.instructionPanelWidth - this.instructionPanelMargin,
+			y: this.instructionPanelMargin
+		});
+		
+		// Cybersecurity-themed Instruction panel
+		var instructionPanelBg = new Kinetic.Rect({
+			x: 0,
+			y: 0,
+			width: this.instructionPanelWidth,
+			height: this.instructionPanelHeight,
+			fill: '#0a0a0a',
+			stroke: '#ffff00',
+			strokeWidth: 2,
+			cornerRadius: 0
+		});
+		
+		// Inner glow effect (yellow)
+		var instructionPanelGlow = new Kinetic.Rect({
+			x: 2,
+			y: 2,
+			width: this.instructionPanelWidth - 4,
+			height: this.instructionPanelHeight - 4,
+			fill: 'rgba(255, 255, 0, 0.1)',
+			stroke: '#ffff00',
+			strokeWidth: 1,
+			cornerRadius: 0
+		});
+		
+		// Corner brackets (yellow)
+		var instructionBracketSize = 6;
+		var instructionBracketThickness = 2;
+		// Top-left bracket
+		var instructionTopLeftBracket1 = new Kinetic.Rect({x: 4, y: 4, width: instructionBracketSize, height: instructionBracketThickness, fill: '#ffff00'});
+		var instructionTopLeftBracket2 = new Kinetic.Rect({x: 4, y: 4, width: instructionBracketThickness, height: instructionBracketSize, fill: '#ffff00'});
+		// Top-right bracket
+		var instructionTopRightBracket1 = new Kinetic.Rect({x: this.instructionPanelWidth - 4 - instructionBracketSize, y: 4, width: instructionBracketSize, height: instructionBracketThickness, fill: '#ffff00'});
+		var instructionTopRightBracket2 = new Kinetic.Rect({x: this.instructionPanelWidth - 4 - instructionBracketThickness, y: 4, width: instructionBracketThickness, height: instructionBracketSize, fill: '#ffff00'});
+		// Bottom-left bracket
+		var instructionBottomLeftBracket1 = new Kinetic.Rect({x: 4, y: this.instructionPanelHeight - 4 - instructionBracketThickness, width: instructionBracketSize, height: instructionBracketThickness, fill: '#ffff00'});
+		var instructionBottomLeftBracket2 = new Kinetic.Rect({x: 4, y: this.instructionPanelHeight - 4 - instructionBracketSize, width: instructionBracketThickness, height: instructionBracketSize, fill: '#ffff00'});
+		// Bottom-right bracket
+		var instructionBottomRightBracket1 = new Kinetic.Rect({x: this.instructionPanelWidth - 4 - instructionBracketSize, y: this.instructionPanelHeight - 4 - instructionBracketThickness, width: instructionBracketSize, height: instructionBracketThickness, fill: '#ffff00'});
+		var instructionBottomRightBracket2 = new Kinetic.Rect({x: this.instructionPanelWidth - 4 - instructionBracketThickness, y: this.instructionPanelHeight - 4 - instructionBracketSize, width: instructionBracketThickness, height: instructionBracketSize, fill: '#ffff00'});
+		
+		// Instruction text lines (cybersecurity terminal style)
+		this.instructionTitleText = new Kinetic.Text({
+			x: 15,
+			y: 8,
+			fontSize: 14,
+			fontStyle: 'bold',
+			fontFamily: 'VT323, Courier, monospace',
+			fill: '#ffff00',
+			text: '> CONTROLS:',
+			shadowColor: '#ffff00',
+			shadowBlur: 6,
+			shadowOffset: {x: 0, y: 0},
+			shadowOpacity: 0.8
+		});
+		
+		this.instructionMoveText = new Kinetic.Text({
+			x: 15,
+			y: 28,
+			fontSize: 12,
+			fontFamily: 'VT323, Courier, monospace',
+			fill: '#ffff00',
+			text: '  MOVE: W/A/S/D',
+			shadowColor: '#ffff00',
+			shadowBlur: 4,
+			shadowOffset: {x: 0, y: 0},
+			shadowOpacity: 0.6
+		});
+		
+		this.instructionShootText = new Kinetic.Text({
+			x: 15,
+			y: 44,
+			fontSize: 12,
+			fontFamily: 'VT323, Courier, monospace',
+			fill: '#ffff00',
+			text: '  SHOOT: MOUSE CLICK',
+			shadowColor: '#ffff00',
+			shadowBlur: 4,
+			shadowOffset: {x: 0, y: 0},
+			shadowOpacity: 0.6
+		});
+		
+		this.instructionGoalText = new Kinetic.Text({
+			x: 15,
+			y: 60,
+			fontSize: 12,
+			fontFamily: 'VT323, Courier, monospace',
+			fill: '#ffff00',
+			text: '  GOAL: SURVIVE',
+			shadowColor: '#ffff00',
+			shadowBlur: 4,
+			shadowOffset: {x: 0, y: 0},
+			shadowOpacity: 0.6
+		});
+		
+		this.instructionPanelGroup.add(instructionPanelBg);
+		this.instructionPanelGroup.add(instructionPanelGlow);
+		this.instructionPanelGroup.add(instructionTopLeftBracket1);
+		this.instructionPanelGroup.add(instructionTopLeftBracket2);
+		this.instructionPanelGroup.add(instructionTopRightBracket1);
+		this.instructionPanelGroup.add(instructionTopRightBracket2);
+		this.instructionPanelGroup.add(instructionBottomLeftBracket1);
+		this.instructionPanelGroup.add(instructionBottomLeftBracket2);
+		this.instructionPanelGroup.add(instructionBottomRightBracket1);
+		this.instructionPanelGroup.add(instructionBottomRightBracket2);
+		this.instructionPanelGroup.add(this.instructionTitleText);
+		this.instructionPanelGroup.add(this.instructionMoveText);
+		this.instructionPanelGroup.add(this.instructionShootText);
+		this.instructionPanelGroup.add(this.instructionGoalText);
+
 		this.user = null;
 
 		this.playerGroup = new Kinetic.Group();
@@ -307,6 +426,7 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		this.mainLayer.add(this.playerGroup);
 		this.mainLayer.add(this.healthBarGroup);
 		this.mainLayer.add(this.scoreBarGroup);
+		this.mainLayer.add(this.instructionPanelGroup);
 		this.lastLayer.add(this.foreground);
 
 		var E1 = 0.05; // epsilon for angle comparison
@@ -551,6 +671,10 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		this.backgroundOverlay.setHeight(height);
 		this.foreground.setWidth(width);
 		this.foreground.setHeight(height);
+		// Reposition instruction panel in top right
+		if (this.instructionPanelGroup) {
+			this.instructionPanelGroup.setX(width - this.instructionPanelWidth - this.instructionPanelMargin);
+		}
 		this.stage.draw();
 	};
 
