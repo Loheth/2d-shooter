@@ -65,13 +65,14 @@ html, body {
 	width: 100vw;
 	height: 100vh;
 	background-image: url('../img/1.png');
-	background-size: 100% 100%;
+	background-size: cover;
 	background-position: center;
 	background-repeat: no-repeat;
 	z-index: 10000;
 	display: flex;
 	justify-content: center;
-	align-items: center;
+	align-items: flex-end;
+	padding-bottom: 40px;
 	overflow: hidden;
 }
 
@@ -105,7 +106,7 @@ html, body {
 	font-family: 'Arial Black', Arial, sans-serif;
 	letter-spacing: 3px;
 	text-transform: uppercase;
-	margin-top: 350px;
+	margin-top: 0;
 	overflow: hidden;
 	animation: pulse-glow 2s ease-in-out infinite;
 }
@@ -766,5 +767,28 @@ body.game-over-open .modal-backdrop.show {
 	.pixel-modal .modal-dialog {
 		margin: 20px auto;
 		padding: 0 10px;
+	}
+	
+	.start-btn {
+		font-size: 24px;
+		padding: 15px 40px;
+		letter-spacing: 2px;
+	}
+}
+
+/* Large screen adjustments */
+@media (min-width: 1920px) {
+	.start-btn {
+		font-size: 42px;
+		padding: 30px 80px;
+	}
+}
+
+/* Very small screen adjustments */
+@media (max-width: 480px) {
+	.start-btn {
+		font-size: 18px;
+		padding: 12px 30px;
+		letter-spacing: 1px;
 	}
 }

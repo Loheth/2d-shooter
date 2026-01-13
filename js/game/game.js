@@ -1,8 +1,4 @@
-/**
- * Script responsible for basic game mechanics.
- *
- * Author: Tomas Mudrunka
- */
+
 
 define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerator) {
 	// background image pattern
@@ -15,6 +11,20 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 
 		var width = $(window).width();
 		var height = $(window).height();
+
+		// Reference resolution for scaling (1920x1080)
+		this.referenceWidth = 1920;
+		this.referenceHeight = 1080;
+		
+		// Calculate scale factor based on screen size
+		// Use the smaller of width/height ratios to ensure UI fits on screen
+		this.uiScale = Math.min(
+			width / this.referenceWidth,
+			height / this.referenceHeight,
+			2.0 // Cap at 2.0x for very large screens
+		);
+		// Minimum scale for very small screens - increased to make UI elements bigger
+		this.uiScale = Math.max(this.uiScale, 1.0);
 
 		this.stage = new Kinetic.Stage({
 			container: 'playground',
@@ -55,13 +65,19 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		// Minecraft-style health bar components
 		this.maxHP = 50;
 		this.heartsPerRow = 10; // Show 10 hearts per row (like Minecraft)
-		this.heartSize = 12; // Size of each heart icon (increased from 9)
-		this.heartSpacing = 1; // Spacing between hearts
-		this.heartScale = 1.3; // Scale factor to make hearts bigger
+		// Scale heart size based on screen resolution - further reduced
+		this.baseHeartSize = 12;
+		this.heartSize = Math.round(this.baseHeartSize * this.uiScale);
+		this.heartSpacing = Math.max(1, Math.round(1.5 * this.uiScale));
+		this.heartScale = 1.2 * this.uiScale; // Scale factor to make hearts bigger
+		
+		// Base margin scaled by UI scale - further reduced
+		this.baseMargin = 10;
+		this.uiMargin = Math.round(this.baseMargin * this.uiScale);
 		
 		this.healthBarGroup = new Kinetic.Group({
-			x: 10,
-			y: 10
+			x: this.uiMargin,
+			y: this.uiMargin
 		});
 		
 		// Create heart icons array
@@ -123,37 +139,42 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		}
 		
 		// Calculate HP text position
-		var hpTextY = (Math.ceil(totalHearts / this.heartsPerRow)) * (this.heartSize + this.heartSpacing) + 5;
+		var hpTextY = (Math.ceil(totalHearts / this.heartsPerRow)) * (this.heartSize + this.heartSpacing) + Math.round(5 * this.uiScale);
 		
-		// Cybersecurity-themed Agent HP panel (smaller size)
-		var hpPanelWidth = 180;
-		var hpPanelHeight = 35;
-		var hpPanelBg = new Kinetic.Rect({
+		// Cybersecurity-themed Agent HP panel (scaled size) - further reduced
+		this.baseHpPanelWidth = 200;
+		this.baseHpPanelHeight = 35;
+		var hpPanelWidth = Math.round(this.baseHpPanelWidth * this.uiScale);
+		var hpPanelHeight = Math.round(this.baseHpPanelHeight * this.uiScale);
+		this.hpPanelBg = new Kinetic.Rect({
 			x: 0,
 			y: hpTextY,
 			width: hpPanelWidth,
 			height: hpPanelHeight,
 			fill: '#0a0a0a',
 			stroke: '#00ff00',
-			strokeWidth: 2,
+			strokeWidth: Math.max(1, Math.round(2 * this.uiScale)),
 			cornerRadius: 0
 		});
 		
 		// Inner glow effect
-		var hpPanelGlow = new Kinetic.Rect({
-			x: 2,
-			y: hpTextY + 2,
-			width: hpPanelWidth - 4,
-			height: hpPanelHeight - 4,
+		var glowMargin = Math.max(1, Math.round(2 * this.uiScale));
+		this.hpPanelGlow = new Kinetic.Rect({
+			x: glowMargin,
+			y: hpTextY + glowMargin,
+			width: hpPanelWidth - (glowMargin * 2),
+			height: hpPanelHeight - (glowMargin * 2),
 			fill: 'rgba(0, 255, 0, 0.1)',
 			stroke: '#00ff00',
-			strokeWidth: 1,
+			strokeWidth: Math.max(1, Math.round(1 * this.uiScale)),
 			cornerRadius: 0
 		});
 		
-		// Corner brackets (cybersecurity terminal style) - smaller
-		var bracketSize = 6;
-		var bracketThickness = 2;
+		// Corner brackets (cybersecurity terminal style) - scaled - further reduced
+		var baseBracketSize = 6;
+		var baseBracketThickness = 2;
+		var bracketSize = Math.round(baseBracketSize * this.uiScale);
+		var bracketThickness = Math.max(1, Math.round(baseBracketThickness * this.uiScale));
 		// Top-left bracket
 		var topLeftBracket1 = new Kinetic.Rect({x: 4, y: hpTextY + 4, width: bracketSize, height: bracketThickness, fill: '#00ff00'});
 		var topLeftBracket2 = new Kinetic.Rect({x: 4, y: hpTextY + 4, width: bracketThickness, height: bracketSize, fill: '#00ff00'});
@@ -167,23 +188,26 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		var bottomRightBracket1 = new Kinetic.Rect({x: hpPanelWidth - 4 - bracketSize, y: hpTextY + hpPanelHeight - 4 - bracketThickness, width: bracketSize, height: bracketThickness, fill: '#00ff00'});
 		var bottomRightBracket2 = new Kinetic.Rect({x: hpPanelWidth - 4 - bracketThickness, y: hpTextY + hpPanelHeight - 4 - bracketSize, width: bracketThickness, height: bracketSize, fill: '#00ff00'});
 		
-		// Agent HP text label (cybersecurity terminal style) - smaller font
+		// Agent HP text label (cybersecurity terminal style) - scaled font - further reduced
+		var baseFontSize = 14;
+		var baseTextX = 15;
+		var baseTextY = 8;
 		this.healthBarText = new Kinetic.Text({
-			x: 15,
-			y: hpTextY + 8,
-			fontSize: 14,
+			x: Math.round(baseTextX * this.uiScale),
+			y: hpTextY + Math.round(baseTextY * this.uiScale),
+			fontSize: Math.round(baseFontSize * this.uiScale),
 			fontStyle: 'bold',
 			fontFamily: 'VT323, Courier, monospace',
 			fill: '#00ff00',
 			text: '> AGENT_HP: 50',
 			shadowColor: '#00ff00',
-			shadowBlur: 6,
+			shadowBlur: Math.round(6 * this.uiScale),
 			shadowOffset: {x: 0, y: 0},
 			shadowOpacity: 0.8
 		});
 		
-		this.healthBarGroup.add(hpPanelBg);
-		this.healthBarGroup.add(hpPanelGlow);
+		this.healthBarGroup.add(this.hpPanelBg);
+		this.healthBarGroup.add(this.hpPanelGlow);
 		this.healthBarGroup.add(topLeftBracket1);
 		this.healthBarGroup.add(topLeftBracket2);
 		this.healthBarGroup.add(topRightBracket1);
@@ -195,34 +219,38 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		this.healthBarGroup.add(this.healthBarText);
 
 		// Score bar components - positioned below Agent HP
+		var scoreBarSpacing = Math.round(8 * this.uiScale);
 		this.scoreBarGroup = new Kinetic.Group({
-			x: 10, // Same x position as HP bar group
-			y: 10 + hpTextY + hpPanelHeight + 8 // Below HP panel with smaller spacing
+			x: this.uiMargin, // Same x position as HP bar group
+			y: this.uiMargin + hpTextY + hpPanelHeight + scoreBarSpacing // Below HP panel with scaled spacing
 		});
 		
-		// Cybersecurity-themed Score panel (smaller size)
-		var scorePanelWidth = 180;
-		var scorePanelHeight = 35;
-		var scorePanelBg = new Kinetic.Rect({
+		// Cybersecurity-themed Score panel (scaled size) - further reduced
+		this.baseScorePanelWidth = 200;
+		this.baseScorePanelHeight = 35;
+		var scorePanelWidth = Math.round(this.baseScorePanelWidth * this.uiScale);
+		var scorePanelHeight = Math.round(this.baseScorePanelHeight * this.uiScale);
+		this.scorePanelBg = new Kinetic.Rect({
 			x: 0,
 			y: 0,
 			width: scorePanelWidth,
 			height: scorePanelHeight,
 			fill: '#0a0a0a',
 			stroke: '#00ffff',
-			strokeWidth: 2,
+			strokeWidth: Math.max(1, Math.round(2 * this.uiScale)),
 			cornerRadius: 0
 		});
 		
 		// Inner glow effect (cyan)
-		var scorePanelGlow = new Kinetic.Rect({
-			x: 2,
-			y: 2,
-			width: scorePanelWidth - 4,
-			height: scorePanelHeight - 4,
+		var scoreGlowMargin = Math.max(1, Math.round(2 * this.uiScale));
+		this.scorePanelGlow = new Kinetic.Rect({
+			x: scoreGlowMargin,
+			y: scoreGlowMargin,
+			width: scorePanelWidth - (scoreGlowMargin * 2),
+			height: scorePanelHeight - (scoreGlowMargin * 2),
 			fill: 'rgba(0, 255, 255, 0.1)',
 			stroke: '#00ffff',
-			strokeWidth: 1,
+			strokeWidth: Math.max(1, Math.round(1 * this.uiScale)),
 			cornerRadius: 0
 		});
 		
@@ -240,23 +268,23 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		var scoreBottomRightBracket1 = new Kinetic.Rect({x: scorePanelWidth - 4 - bracketSize, y: scorePanelHeight - 4 - bracketThickness, width: bracketSize, height: bracketThickness, fill: '#00ffff'});
 		var scoreBottomRightBracket2 = new Kinetic.Rect({x: scorePanelWidth - 4 - bracketThickness, y: scorePanelHeight - 4 - bracketSize, width: bracketThickness, height: bracketSize, fill: '#00ffff'});
 		
-		// Score text (cybersecurity terminal style) - smaller font
+		// Score text (cybersecurity terminal style) - scaled font
 		this.scoreBarText = new Kinetic.Text({
-			x: 15,
-			y: 8,
-			fontSize: 14,
+			x: Math.round(baseTextX * this.uiScale),
+			y: Math.round(baseTextY * this.uiScale),
+			fontSize: Math.round(baseFontSize * this.uiScale),
 			fontStyle: 'bold',
 			fontFamily: 'VT323, Courier, monospace',
 			fill: '#00ffff',
 			text: '> THREAT_ELIMINATED: 0',
 			shadowColor: '#00ffff',
-			shadowBlur: 6,
+			shadowBlur: Math.round(6 * this.uiScale),
 			shadowOffset: {x: 0, y: 0},
 			shadowOpacity: 0.8
 		});
 		
-		this.scoreBarGroup.add(scorePanelBg);
-		this.scoreBarGroup.add(scorePanelGlow);
+		this.scoreBarGroup.add(this.scorePanelBg);
+		this.scoreBarGroup.add(this.scorePanelGlow);
 		this.scoreBarGroup.add(scoreTopLeftBracket1);
 		this.scoreBarGroup.add(scoreTopLeftBracket2);
 		this.scoreBarGroup.add(scoreTopRightBracket1);
@@ -267,43 +295,58 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		this.scoreBarGroup.add(scoreBottomRightBracket2);
 		this.scoreBarGroup.add(this.scoreBarText);
 
-		// Instruction panel components - positioned in top right
-		this.instructionPanelWidth = 220;
-		this.instructionPanelHeight = 80;
-		this.instructionPanelMargin = 10;
+		// Instruction panel components - positioned in top right - further reduced
+		var baseInstructionPanelWidth = 230;
+		var baseInstructionPanelHeight = 80;
+		this.instructionPanelWidth = Math.round(baseInstructionPanelWidth * this.uiScale);
+		this.instructionPanelHeight = Math.round(baseInstructionPanelHeight * this.uiScale);
+		
+		// Store base values for recalculation on resize
+		this.baseInstructionPanelWidth = baseInstructionPanelWidth;
+		this.baseInstructionPanelHeight = baseInstructionPanelHeight;
+		
+		// Calculate instruction panel position with overlap protection
+		var instructionPanelX = width - this.instructionPanelWidth - this.uiMargin;
+		// Prevent overlap with health bar (check if there's enough space)
+		var healthBarRightEdge = this.uiMargin + hpPanelWidth;
+		if (instructionPanelX < healthBarRightEdge + this.uiMargin) {
+			// Move instruction panel below health bar if overlap detected
+			instructionPanelX = this.uiMargin;
+		}
 		
 		this.instructionPanelGroup = new Kinetic.Group({
-			x: width - this.instructionPanelWidth - this.instructionPanelMargin,
-			y: this.instructionPanelMargin
+			x: instructionPanelX,
+			y: this.uiMargin
 		});
 		
 		// Cybersecurity-themed Instruction panel
-		var instructionPanelBg = new Kinetic.Rect({
+		this.instructionPanelBg = new Kinetic.Rect({
 			x: 0,
 			y: 0,
 			width: this.instructionPanelWidth,
 			height: this.instructionPanelHeight,
 			fill: '#0a0a0a',
 			stroke: '#ffff00',
-			strokeWidth: 2,
+			strokeWidth: Math.max(1, Math.round(2 * this.uiScale)),
 			cornerRadius: 0
 		});
 		
 		// Inner glow effect (yellow)
-		var instructionPanelGlow = new Kinetic.Rect({
-			x: 2,
-			y: 2,
-			width: this.instructionPanelWidth - 4,
-			height: this.instructionPanelHeight - 4,
+		var instructionGlowMargin = Math.max(1, Math.round(2 * this.uiScale));
+		this.instructionPanelGlow = new Kinetic.Rect({
+			x: instructionGlowMargin,
+			y: instructionGlowMargin,
+			width: this.instructionPanelWidth - (instructionGlowMargin * 2),
+			height: this.instructionPanelHeight - (instructionGlowMargin * 2),
 			fill: 'rgba(255, 255, 0, 0.1)',
 			stroke: '#ffff00',
-			strokeWidth: 1,
+			strokeWidth: Math.max(1, Math.round(1 * this.uiScale)),
 			cornerRadius: 0
 		});
 		
-		// Corner brackets (yellow)
-		var instructionBracketSize = 6;
-		var instructionBracketThickness = 2;
+		// Corner brackets (yellow) - scaled
+		var instructionBracketSize = bracketSize;
+		var instructionBracketThickness = bracketThickness;
 		// Top-left bracket
 		var instructionTopLeftBracket1 = new Kinetic.Rect({x: 4, y: 4, width: instructionBracketSize, height: instructionBracketThickness, fill: '#ffff00'});
 		var instructionTopLeftBracket2 = new Kinetic.Rect({x: 4, y: 4, width: instructionBracketThickness, height: instructionBracketSize, fill: '#ffff00'});
@@ -317,62 +360,67 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		var instructionBottomRightBracket1 = new Kinetic.Rect({x: this.instructionPanelWidth - 4 - instructionBracketSize, y: this.instructionPanelHeight - 4 - instructionBracketThickness, width: instructionBracketSize, height: instructionBracketThickness, fill: '#ffff00'});
 		var instructionBottomRightBracket2 = new Kinetic.Rect({x: this.instructionPanelWidth - 4 - instructionBracketThickness, y: this.instructionPanelHeight - 4 - instructionBracketSize, width: instructionBracketThickness, height: instructionBracketSize, fill: '#ffff00'});
 		
-		// Instruction text lines (cybersecurity terminal style)
+		// Instruction text lines (cybersecurity terminal style) - scaled - further reduced
+		var baseInstructionTextX = 15;
+		var baseInstructionTitleY = 8;
+		var baseInstructionLineSpacing = 20;
+		var baseInstructionFontSize = 12;
+		
 		this.instructionTitleText = new Kinetic.Text({
-			x: 15,
-			y: 8,
-			fontSize: 14,
+			x: Math.round(baseInstructionTextX * this.uiScale),
+			y: Math.round(baseInstructionTitleY * this.uiScale),
+			fontSize: Math.round(baseFontSize * this.uiScale),
 			fontStyle: 'bold',
 			fontFamily: 'VT323, Courier, monospace',
 			fill: '#ffff00',
 			text: '> CONTROLS:',
 			shadowColor: '#ffff00',
-			shadowBlur: 6,
+			shadowBlur: Math.round(6 * this.uiScale),
 			shadowOffset: {x: 0, y: 0},
 			shadowOpacity: 0.8
 		});
 		
 		this.instructionMoveText = new Kinetic.Text({
-			x: 15,
-			y: 28,
-			fontSize: 12,
+			x: Math.round(baseInstructionTextX * this.uiScale),
+			y: Math.round((baseInstructionTitleY + baseInstructionLineSpacing) * this.uiScale),
+			fontSize: Math.round(baseInstructionFontSize * this.uiScale),
 			fontFamily: 'VT323, Courier, monospace',
 			fill: '#ffff00',
 			text: '  MOVE: W/A/S/D',
 			shadowColor: '#ffff00',
-			shadowBlur: 4,
+			shadowBlur: Math.round(4 * this.uiScale),
 			shadowOffset: {x: 0, y: 0},
 			shadowOpacity: 0.6
 		});
 		
 		this.instructionShootText = new Kinetic.Text({
-			x: 15,
-			y: 44,
-			fontSize: 12,
+			x: Math.round(baseInstructionTextX * this.uiScale),
+			y: Math.round((baseInstructionTitleY + baseInstructionLineSpacing * 2) * this.uiScale),
+			fontSize: Math.round(baseInstructionFontSize * this.uiScale),
 			fontFamily: 'VT323, Courier, monospace',
 			fill: '#ffff00',
 			text: '  SHOOT: MOUSE CLICK',
 			shadowColor: '#ffff00',
-			shadowBlur: 4,
+			shadowBlur: Math.round(4 * this.uiScale),
 			shadowOffset: {x: 0, y: 0},
 			shadowOpacity: 0.6
 		});
 		
 		this.instructionGoalText = new Kinetic.Text({
-			x: 15,
-			y: 60,
-			fontSize: 12,
+			x: Math.round(baseInstructionTextX * this.uiScale),
+			y: Math.round((baseInstructionTitleY + baseInstructionLineSpacing * 3) * this.uiScale),
+			fontSize: Math.round(baseInstructionFontSize * this.uiScale),
 			fontFamily: 'VT323, Courier, monospace',
 			fill: '#ffff00',
 			text: '  GOAL: SURVIVE',
 			shadowColor: '#ffff00',
-			shadowBlur: 4,
+			shadowBlur: Math.round(4 * this.uiScale),
 			shadowOffset: {x: 0, y: 0},
 			shadowOpacity: 0.6
 		});
 		
-		this.instructionPanelGroup.add(instructionPanelBg);
-		this.instructionPanelGroup.add(instructionPanelGlow);
+		this.instructionPanelGroup.add(this.instructionPanelBg);
+		this.instructionPanelGroup.add(this.instructionPanelGlow);
 		this.instructionPanelGroup.add(instructionTopLeftBracket1);
 		this.instructionPanelGroup.add(instructionTopLeftBracket2);
 		this.instructionPanelGroup.add(instructionTopRightBracket1);
@@ -658,11 +706,35 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 	};
 
 	/**
-	 * Resize the playground.
+	 * Calculate UI scale factor based on screen dimensions.
+	 * @param width screen width
+	 * @param height screen height
+	 * @return {number} scale factor
+	 */
+	Game.prototype.calculateUIScale = function(width, height) {
+		var scale = Math.min(
+			width / this.referenceWidth,
+			height / this.referenceHeight,
+			2.0 // Cap at 2.0x for very large screens
+		);
+		// Minimum scale for very small screens - increased to make UI elements bigger
+		return Math.max(scale, 1.0);
+	};
+
+	/**
+	 * Resize the playground and recalculate UI elements.
 	 * @param width new width
 	 * @param height new height
 	 */
 	Game.prototype.resizePlayground = function(width, height) {
+		// Recalculate UI scale
+		var oldScale = this.uiScale;
+		this.uiScale = this.calculateUIScale(width, height);
+		
+		// Update base margin
+		this.uiMargin = Math.round(this.baseMargin * this.uiScale);
+		
+		// Resize canvas
 		this.stage.setWidth(width);
 		this.stage.setHeight(height);
 		this.background.setWidth(width);
@@ -671,10 +743,99 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		this.backgroundOverlay.setHeight(height);
 		this.foreground.setWidth(width);
 		this.foreground.setHeight(height);
-		// Reposition instruction panel in top right
-		if (this.instructionPanelGroup) {
-			this.instructionPanelGroup.setX(width - this.instructionPanelWidth - this.instructionPanelMargin);
+		
+		// Only recalculate UI if scale changed significantly (more than 5%)
+		if (Math.abs(this.uiScale - oldScale) > 0.05) {
+			// Update instruction panel size
+			this.instructionPanelWidth = Math.round(this.baseInstructionPanelWidth * this.uiScale);
+			this.instructionPanelHeight = Math.round(this.baseInstructionPanelHeight * this.uiScale);
+			
+			// Update instruction panel background
+			if (this.instructionPanelBg) {
+				this.instructionPanelBg.setWidth(this.instructionPanelWidth);
+				this.instructionPanelBg.setHeight(this.instructionPanelHeight);
+				this.instructionPanelBg.setStrokeWidth(Math.max(1, Math.round(2 * this.uiScale)));
+			}
+			if (this.instructionPanelGlow) {
+				var instructionGlowMargin = Math.max(1, Math.round(2 * this.uiScale));
+				this.instructionPanelGlow.setX(instructionGlowMargin);
+				this.instructionPanelGlow.setY(instructionGlowMargin);
+				this.instructionPanelGlow.setWidth(this.instructionPanelWidth - (instructionGlowMargin * 2));
+				this.instructionPanelGlow.setHeight(this.instructionPanelHeight - (instructionGlowMargin * 2));
+				this.instructionPanelGlow.setStrokeWidth(Math.max(1, Math.round(1 * this.uiScale)));
+			}
+			
+			// Update HP panel size
+			if (this.hpPanelBg) {
+				var hpPanelWidth = Math.round(this.baseHpPanelWidth * this.uiScale);
+				var hpPanelHeight = Math.round(this.baseHpPanelHeight * this.uiScale);
+				this.hpPanelBg.setWidth(hpPanelWidth);
+				this.hpPanelBg.setHeight(hpPanelHeight);
+				this.hpPanelBg.setStrokeWidth(Math.max(1, Math.round(2 * this.uiScale)));
+			}
+			if (this.hpPanelGlow) {
+				var glowMargin = Math.max(1, Math.round(2 * this.uiScale));
+				var hpPanelWidth = Math.round(this.baseHpPanelWidth * this.uiScale);
+				var hpPanelHeight = Math.round(this.baseHpPanelHeight * this.uiScale);
+				this.hpPanelGlow.setX(glowMargin);
+				this.hpPanelGlow.setY(this.hpPanelBg.getY() + glowMargin);
+				this.hpPanelGlow.setWidth(hpPanelWidth - (glowMargin * 2));
+				this.hpPanelGlow.setHeight(hpPanelHeight - (glowMargin * 2));
+				this.hpPanelGlow.setStrokeWidth(Math.max(1, Math.round(1 * this.uiScale)));
+			}
+			
+			// Update score panel size
+			if (this.scorePanelBg) {
+				var scorePanelWidth = Math.round(this.baseScorePanelWidth * this.uiScale);
+				var scorePanelHeight = Math.round(this.baseScorePanelHeight * this.uiScale);
+				this.scorePanelBg.setWidth(scorePanelWidth);
+				this.scorePanelBg.setHeight(scorePanelHeight);
+				this.scorePanelBg.setStrokeWidth(Math.max(1, Math.round(2 * this.uiScale)));
+			}
+			if (this.scorePanelGlow) {
+				var scoreGlowMargin = Math.max(1, Math.round(2 * this.uiScale));
+				var scorePanelWidth = Math.round(this.baseScorePanelWidth * this.uiScale);
+				var scorePanelHeight = Math.round(this.baseScorePanelHeight * this.uiScale);
+				this.scorePanelGlow.setX(scoreGlowMargin);
+				this.scorePanelGlow.setY(scoreGlowMargin);
+				this.scorePanelGlow.setWidth(scorePanelWidth - (scoreGlowMargin * 2));
+				this.scorePanelGlow.setHeight(scorePanelHeight - (scoreGlowMargin * 2));
+				this.scorePanelGlow.setStrokeWidth(Math.max(1, Math.round(1 * this.uiScale)));
+			}
+			
+			// Update instruction panel text sizes - updated to match new base sizes
+			var baseFontSize = 14;
+			var baseInstructionFontSize = 12;
+			this.instructionTitleText.setFontSize(Math.round(baseFontSize * this.uiScale));
+			this.instructionTitleText.setShadowBlur(Math.round(6 * this.uiScale));
+			this.instructionMoveText.setFontSize(Math.round(baseInstructionFontSize * this.uiScale));
+			this.instructionMoveText.setShadowBlur(Math.round(4 * this.uiScale));
+			this.instructionShootText.setFontSize(Math.round(baseInstructionFontSize * this.uiScale));
+			this.instructionShootText.setShadowBlur(Math.round(4 * this.uiScale));
+			this.instructionGoalText.setFontSize(Math.round(baseInstructionFontSize * this.uiScale));
+			this.instructionGoalText.setShadowBlur(Math.round(4 * this.uiScale));
+			
+			// Update health and score text sizes
+			this.healthBarText.setFontSize(Math.round(baseFontSize * this.uiScale));
+			this.healthBarText.setShadowBlur(Math.round(6 * this.uiScale));
+			this.scoreBarText.setFontSize(Math.round(baseFontSize * this.uiScale));
+			this.scoreBarText.setShadowBlur(Math.round(6 * this.uiScale));
 		}
+		
+		// Reposition instruction panel in top right with overlap protection
+		if (this.instructionPanelGroup) {
+			var instructionPanelX = width - this.instructionPanelWidth - this.uiMargin;
+			// Get health bar width
+			var hpPanelWidth = Math.round(this.baseHpPanelWidth * this.uiScale);
+			var healthBarRightEdge = this.uiMargin + hpPanelWidth;
+			
+			// Prevent overlap - if screen is too narrow, move instruction panel below
+			if (instructionPanelX < healthBarRightEdge + this.uiMargin) {
+				instructionPanelX = this.uiMargin;
+			}
+			this.instructionPanelGroup.setX(instructionPanelX);
+		}
+		
 		this.stage.draw();
 	};
 

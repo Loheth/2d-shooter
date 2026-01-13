@@ -1,8 +1,3 @@
-/**
- * Script responsible for user management.
- *
- * Author: Tomas Mudrunka
- */
 
 define(function() {
 
