@@ -1,6 +1,6 @@
 
 
-define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerator) {
+define(["player","shoot","enemyGenerator","grenade"], function(Player, Shoot, EnemyGenerator, Grenade) {
 	// background image pattern
 	var bgImg = new Image();
 	bgImg.src = 'img/game/bg-texture.jpg';
@@ -297,7 +297,7 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 
 		// Instruction panel components - positioned in top right - further reduced
 		var baseInstructionPanelWidth = 230;
-		var baseInstructionPanelHeight = 80;
+		var baseInstructionPanelHeight = 100; // Increased to fit grenade instruction
 		this.instructionPanelWidth = Math.round(baseInstructionPanelWidth * this.uiScale);
 		this.instructionPanelHeight = Math.round(baseInstructionPanelHeight * this.uiScale);
 		
@@ -406,9 +406,22 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 			shadowOpacity: 0.6
 		});
 		
-		this.instructionGoalText = new Kinetic.Text({
+		this.instructionGrenadeText = new Kinetic.Text({
 			x: Math.round(baseInstructionTextX * this.uiScale),
 			y: Math.round((baseInstructionTitleY + baseInstructionLineSpacing * 3) * this.uiScale),
+			fontSize: Math.round(baseInstructionFontSize * this.uiScale),
+			fontFamily: 'VT323, Courier, monospace',
+			fill: '#ffff00',
+			text: '  GRENADE: G KEY',
+			shadowColor: '#ffff00',
+			shadowBlur: Math.round(4 * this.uiScale),
+			shadowOffset: {x: 0, y: 0},
+			shadowOpacity: 0.6
+		});
+		
+		this.instructionGoalText = new Kinetic.Text({
+			x: Math.round(baseInstructionTextX * this.uiScale),
+			y: Math.round((baseInstructionTitleY + baseInstructionLineSpacing * 4) * this.uiScale),
 			fontSize: Math.round(baseInstructionFontSize * this.uiScale),
 			fontFamily: 'VT323, Courier, monospace',
 			fill: '#ffff00',
@@ -432,7 +445,85 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		this.instructionPanelGroup.add(this.instructionTitleText);
 		this.instructionPanelGroup.add(this.instructionMoveText);
 		this.instructionPanelGroup.add(this.instructionShootText);
+		this.instructionPanelGroup.add(this.instructionGrenadeText);
 		this.instructionPanelGroup.add(this.instructionGoalText);
+		
+		// Grenade count panel components - positioned below score bar
+		var grenadeBarSpacing = Math.round(8 * this.uiScale);
+		this.grenadeBarGroup = new Kinetic.Group({
+			x: this.uiMargin,
+			y: this.uiMargin + hpTextY + hpPanelHeight + scoreBarSpacing + scorePanelHeight + grenadeBarSpacing
+		});
+		
+		// Cybersecurity-themed Grenade panel (scaled size)
+		this.baseGrenadePanelWidth = 200;
+		this.baseGrenadePanelHeight = 35;
+		var grenadePanelWidth = Math.round(this.baseGrenadePanelWidth * this.uiScale);
+		var grenadePanelHeight = Math.round(this.baseGrenadePanelHeight * this.uiScale);
+		this.grenadePanelBg = new Kinetic.Rect({
+			x: 0,
+			y: 0,
+			width: grenadePanelWidth,
+			height: grenadePanelHeight,
+			fill: '#0a0a0a',
+			stroke: '#00ff00',
+			strokeWidth: Math.max(1, Math.round(2 * this.uiScale)),
+			cornerRadius: 0
+		});
+		
+		// Inner glow effect (green)
+		var grenadeGlowMargin = Math.max(1, Math.round(2 * this.uiScale));
+		this.grenadePanelGlow = new Kinetic.Rect({
+			x: grenadeGlowMargin,
+			y: grenadeGlowMargin,
+			width: grenadePanelWidth - (grenadeGlowMargin * 2),
+			height: grenadePanelHeight - (grenadeGlowMargin * 2),
+			fill: 'rgba(0, 255, 0, 0.1)',
+			stroke: '#00ff00',
+			strokeWidth: Math.max(1, Math.round(1 * this.uiScale)),
+			cornerRadius: 0
+		});
+		
+		// Corner brackets (green)
+		// Top-left bracket
+		var grenadeTopLeftBracket1 = new Kinetic.Rect({x: 4, y: 4, width: bracketSize, height: bracketThickness, fill: '#00ff00'});
+		var grenadeTopLeftBracket2 = new Kinetic.Rect({x: 4, y: 4, width: bracketThickness, height: bracketSize, fill: '#00ff00'});
+		// Top-right bracket
+		var grenadeTopRightBracket1 = new Kinetic.Rect({x: grenadePanelWidth - 4 - bracketSize, y: 4, width: bracketSize, height: bracketThickness, fill: '#00ff00'});
+		var grenadeTopRightBracket2 = new Kinetic.Rect({x: grenadePanelWidth - 4 - bracketThickness, y: 4, width: bracketThickness, height: bracketSize, fill: '#00ff00'});
+		// Bottom-left bracket
+		var grenadeBottomLeftBracket1 = new Kinetic.Rect({x: 4, y: grenadePanelHeight - 4 - bracketThickness, width: bracketSize, height: bracketThickness, fill: '#00ff00'});
+		var grenadeBottomLeftBracket2 = new Kinetic.Rect({x: 4, y: grenadePanelHeight - 4 - bracketSize, width: bracketThickness, height: bracketSize, fill: '#00ff00'});
+		// Bottom-right bracket
+		var grenadeBottomRightBracket1 = new Kinetic.Rect({x: grenadePanelWidth - 4 - bracketSize, y: grenadePanelHeight - 4 - bracketThickness, width: bracketSize, height: bracketThickness, fill: '#00ff00'});
+		var grenadeBottomRightBracket2 = new Kinetic.Rect({x: grenadePanelWidth - 4 - bracketThickness, y: grenadePanelHeight - 4 - bracketSize, width: bracketThickness, height: bracketSize, fill: '#00ff00'});
+		
+		// Grenade count text (cybersecurity terminal style) - scaled font
+		this.grenadeBarText = new Kinetic.Text({
+			x: Math.round(baseTextX * this.uiScale),
+			y: Math.round(baseTextY * this.uiScale),
+			fontSize: Math.round(baseFontSize * this.uiScale),
+			fontStyle: 'bold',
+			fontFamily: 'VT323, Courier, monospace',
+			fill: '#00ff00',
+			text: '> EXPLOSIVES: 0',
+			shadowColor: '#00ff00',
+			shadowBlur: Math.round(6 * this.uiScale),
+			shadowOffset: {x: 0, y: 0},
+			shadowOpacity: 0.8
+		});
+		
+		this.grenadeBarGroup.add(this.grenadePanelBg);
+		this.grenadeBarGroup.add(this.grenadePanelGlow);
+		this.grenadeBarGroup.add(grenadeTopLeftBracket1);
+		this.grenadeBarGroup.add(grenadeTopLeftBracket2);
+		this.grenadeBarGroup.add(grenadeTopRightBracket1);
+		this.grenadeBarGroup.add(grenadeTopRightBracket2);
+		this.grenadeBarGroup.add(grenadeBottomLeftBracket1);
+		this.grenadeBarGroup.add(grenadeBottomLeftBracket2);
+		this.grenadeBarGroup.add(grenadeBottomRightBracket1);
+		this.grenadeBarGroup.add(grenadeBottomRightBracket2);
+		this.grenadeBarGroup.add(this.grenadeBarText);
 
 		this.user = null;
 
@@ -445,6 +536,12 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 
 		this.enemyGroup = new Kinetic.Group();
 		this.enemyGenerator = new EnemyGenerator();
+
+		this.grenadeGroup = new Kinetic.Group();
+		this.grenadePickupGroup = new Kinetic.Group();
+		this.grenadeExplosionGroup = new Kinetic.Group();
+		this.grenade = new Grenade();
+		this.grenadePickupInterval = null;
 
 		this.playerSpeed = 4;
 		this.difficulty = 1;
@@ -469,11 +566,15 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		// bind all layers
 		this.firstLayer.add(this.background);
 		this.firstLayer.add(this.backgroundOverlay);
+		this.mainLayer.add(this.grenadePickupGroup);
 		this.mainLayer.add(this.shootGroup);
 		this.mainLayer.add(this.enemyGroup);
+		this.mainLayer.add(this.grenadeGroup);
+		this.mainLayer.add(this.grenadeExplosionGroup);
 		this.mainLayer.add(this.playerGroup);
 		this.mainLayer.add(this.healthBarGroup);
 		this.mainLayer.add(this.scoreBarGroup);
+		this.mainLayer.add(this.grenadeBarGroup);
 		this.mainLayer.add(this.instructionPanelGroup);
 		this.lastLayer.add(this.foreground);
 
@@ -549,6 +650,43 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		};
 		generator.init(this.mainLayer, this.enemyGroup, this.foreground, attackCallback, goToCallback);
 
+		// Initialize grenade system
+		this.grenade.init(this.grenadeGroup, this.grenadePickupGroup, this.grenadeExplosionGroup, this.foreground);
+		
+		// Add grenade pickup collection check interval
+		setInterval(function() {
+			if (!self.gameEnded && !player.paused && !player.disabled) {
+				var p = player.getPosition();
+				var collected = self.grenade.checkPickupCollection(p.x, p.y, 30); // 30 is approximate player radius
+				if (collected) {
+					self.refreshGrenadeCount();
+				}
+			}
+		}, 100); // Check every 100ms
+		
+		// Add key handler for throwing grenades (G key)
+		this.playground.on('keydown', function(event) {
+			if (!self.gameEnded && !player.paused && !player.disabled) {
+				if (event.which === 71) { // G key
+					var p = player.getPosition();
+					// Get mouse position for throwing direction
+					var mousePos = self.foreground.getStage().getPointerPosition();
+					if (mousePos) {
+						// Store enemyGenerator reference for explosion
+						var thrown = self.grenade.throwGrenade(p.x, p.y, mousePos.x, mousePos.y);
+						if (thrown) {
+							// Store reference to enemyGenerator in grenade data for explosion
+							var activeGrenades = self.grenade.activeGrenades;
+							if (activeGrenades.length > 0) {
+								activeGrenades[activeGrenades.length - 1].enemyGenerator = generator;
+							}
+							self.refreshGrenadeCount();
+						}
+					}
+				}
+			}
+		});
+
 		// add layers to the stage
 		this.stage.add(this.firstLayer);
 		this.stage.add(this.mainLayer);
@@ -570,14 +708,27 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		this.player.setSpeed(this.playerSpeed);
 		this.enemyGenerator.clean();
 		this.enemyGenerator.setDifficulty(this.difficulty);
+		this.grenade.clean();
 		this.refreshText();
 		this.refreshScore();
+		this.refreshGrenadeCount();
 
 		// start new game
 		this.player.gameBegin();
 		this.enemyGenerator.start();
 		this.gameTime = new Date().getTime();
 		this.gamePauseTime = null;
+
+		// Start grenade pickup generation
+		var self = this;
+		if (this.grenadePickupInterval) {
+			clearInterval(this.grenadePickupInterval);
+		}
+		this.grenadePickupInterval = setInterval(function() {
+			if (!self.gameEnded) {
+				self.grenade.createPickup();
+			}
+		}, 8000); // Spawn a pickup every 8 seconds
 
 		this.foreground.setOpacity(0.0);
 		this.lastLayer.draw();
@@ -591,6 +742,11 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		this.player.gameOver();
 		// Stop enemies immediately to prevent further damage
 		this.enemyGenerator.stop();
+		// Stop grenade pickup generation
+		if (this.grenadePickupInterval) {
+			clearInterval(this.grenadePickupInterval);
+			this.grenadePickupInterval = null;
+		}
 		if (this.gameOverCallback) {
 			var self = this;
 			var result = {
@@ -678,6 +834,15 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 		// Display kill count (threats eliminated) like in leaderboard
 		var killCount = this.enemyGenerator ? this.enemyGenerator.killCount : 0;
 		this.scoreBarText.setText('> THREAT_ELIMINATED: ' + killCount);
+		this.mainLayer.draw();
+	};
+
+	/**
+	 * Renders up-to-date grenade count.
+	 */
+	Game.prototype.refreshGrenadeCount = function() {
+		var grenadeCount = this.grenade ? this.grenade.getGrenadeCount() : 0;
+		this.grenadeBarText.setText('> EXPLOSIVES: ' + grenadeCount);
 		this.mainLayer.draw();
 	};
 
@@ -812,14 +977,18 @@ define(["player","shoot","enemyGenerator"], function(Player, Shoot, EnemyGenerat
 			this.instructionMoveText.setShadowBlur(Math.round(4 * this.uiScale));
 			this.instructionShootText.setFontSize(Math.round(baseInstructionFontSize * this.uiScale));
 			this.instructionShootText.setShadowBlur(Math.round(4 * this.uiScale));
+			this.instructionGrenadeText.setFontSize(Math.round(baseInstructionFontSize * this.uiScale));
+			this.instructionGrenadeText.setShadowBlur(Math.round(4 * this.uiScale));
 			this.instructionGoalText.setFontSize(Math.round(baseInstructionFontSize * this.uiScale));
 			this.instructionGoalText.setShadowBlur(Math.round(4 * this.uiScale));
 			
-			// Update health and score text sizes
+			// Update health, score, and grenade text sizes
 			this.healthBarText.setFontSize(Math.round(baseFontSize * this.uiScale));
 			this.healthBarText.setShadowBlur(Math.round(6 * this.uiScale));
 			this.scoreBarText.setFontSize(Math.round(baseFontSize * this.uiScale));
 			this.scoreBarText.setShadowBlur(Math.round(6 * this.uiScale));
+			this.grenadeBarText.setFontSize(Math.round(baseFontSize * this.uiScale));
+			this.grenadeBarText.setShadowBlur(Math.round(6 * this.uiScale));
 		}
 		
 		// Reposition instruction panel in top right with overlap protection
